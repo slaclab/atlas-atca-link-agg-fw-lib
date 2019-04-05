@@ -151,7 +151,7 @@ begin
       U_Eth : entity work.TenGigEthGthUltraScaleWrapper
          generic map (
             TPD_G             => TPD_G,
-            QPLL_REFCLK_SEL_G => "111",
+            EXT_REF_G         => true,
             -- DMA/MAC Configurations
             NUM_LANE_G        => 1,
             -- AXI Streaming Configurations
@@ -171,6 +171,7 @@ begin
             phyReady(0)     => ethLinkUp,
             -- MGT Clock Port (156.25 MHz)
             gtRefClk        => fabEthRefClk,
+            gtRefClkBufg    => axilClk,
             -- MGT Ports
             gtTxP(0)        => fabEthTxP(0),
             gtTxN(0)        => fabEthTxN(0),

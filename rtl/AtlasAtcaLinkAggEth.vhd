@@ -72,22 +72,18 @@ entity AtlasAtcaLinkAggEth is
       -------------------   
       --  Top Level Ports
       -------------------   
-      -- Front Panel LVDS SGMII Ports
-      fpEthTxP          : out   sl;
-      fpEthTxN          : out   sl;
-      fpEthRxP          : in    sl;
-      fpEthRxN          : in    sl;
-      -- ATCA Backplane: BASE ETH[1] Ports
-      baseEthRefClkP    : in    sl;
-      baseEthRefClkN    : in    sl;
-      baseEthTxP        : out   sl;
-      baseEthTxN        : out   sl;
-      baseEthRxP        : in    sl;
-      baseEthRxN        : in    sl;
-      baseEthMdio       : inout sl;
-      baseEthMdc        : out   sl;
-      baseEthRstL       : out   sl;
-      baseEthIrqL       : in    sl;
+      -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
+      fpEthLed          : out   slv(3 downto 0)                                 := "0000";
+      ethRefClkP        : in    slv(1 downto 0);
+      ethRefClkN        : in    slv(1 downto 0);
+      ethTxP            : out   slv(1 downto 0);
+      ethTxN            : out   slv(1 downto 0);
+      ethRxP            : in    slv(1 downto 0);
+      ethRxN            : in    slv(1 downto 0);
+      ethMdio           : inout slv(1 downto 0);
+      ethMdc            : out   slv(1 downto 0)                                 := "11";
+      ethRstL           : out   slv(1 downto 0)                                 := "00";
+      ethIrqL           : in    slv(1 downto 0);
       -- ATCA Backplane: FABRIC ETH[1:4]
       fabEthRefClk      : in    sl;
       fabEthTxP         : out   Slv4Array(4 downto 1);
@@ -170,71 +166,73 @@ begin
                WIDTH_G => 4)
             port map (
                refClk => axilClk,
-               gtRxP  => fabEthRxP(i),
-               gtRxN  => fabEthRxN(i),
-               gtTxP  => fabEthTxP(i),
-               gtTxN  => fabEthTxN(i));
+               gtRxP  => fabEthRxP(i+1),
+               gtRxN  => fabEthRxN(i+1),
+               gtTxP  => fabEthTxP(i+1),
+               gtTxN  => fabEthTxN(i+1));
       end generate;
 
    end generate GEN_FAB;
 
-   GEN_BASE : if ETH_CONFIG_G(4).enable generate
-      U_Eth : entity work.Sgmii88E1111LvdsUltraScale
-         generic map (
-            TPD_G             => TPD_G,
-            STABLE_CLK_FREQ_G => AXIL_CLK_FREQ_C)
-         port map (
-            -- clock and reset
-            stableClk   => axilClk,
-            extRst      => axilRst,
-            -- Local Configurations/status
-            localMac    => localMac(4),
-            linkUp      => ethLinkUp(4),
-            -- Interface to Ethernet Media Access Controller (MAC)
-            macClk      => axilClk,
-            macRst      => axilRst,
-            obMacMaster => obMacMasters(4),
-            obMacSlave  => obMacSlaves(4),
-            ibMacMaster => ibMacMasters(4),
-            ibMacSlave  => ibMacSlaves(4),
-            -- ETH external PHY Ports
-            phyClkP     => baseEthRefClkP,
-            phyClkN     => baseEthRefClkN,
-            phyMdc      => baseEthMdc,
-            phyMdio     => baseEthMdio,
-            phyRstN     => baseEthRstL,
-            phyIrqN     => baseEthIrqL,
-            -- Synchronous LVDS SGMII Ports
-            sgmiiTxP    => baseEthTxP,
-            sgmiiTxN    => baseEthTxN,
-            sgmiiRxP    => baseEthRxP,
-            sgmiiRxN    => baseEthRxN);
-   end generate;
+   GEN_SGMII :
+   for i in 1 downto 0 generate
 
-   GEN_FP : if ETH_CONFIG_G(5).enable generate
-      U_Eth : entity work.AtlasAtcaLinkAggEthFp
-         generic map (
-            TPD_G        => TPD_G,
-            SIMULATION_G => SIMULATION_G)
-         port map (
-            ref156Clk   => ref156Clk,
-            ref156Rst   => ref156Rst,
-            -- Local Configurations/status
-            localMac    => localMac(5),
-            ethLinkUp   => ethLinkUp(5),
-            -- Interface to Ethernet Media Access Controller (MAC)
-            axilClk     => axilClk,
-            axilRst     => axilRst,
-            obMacMaster => obMacMasters(5),
-            obMacSlave  => obMacSlaves(5),
-            ibMacMaster => ibMacMasters(5),
-            ibMacSlave  => ibMacSlaves(5),
-            -- Asynchronous LVDS SGMII Ports
-            fpEthTxP    => fpEthTxP,
-            fpEthTxN    => fpEthTxN,
-            fpEthRxP    => fpEthRxP,
-            fpEthRxN    => fpEthRxN);
-   end generate;
+      EN_ETH : if ETH_CONFIG_G(i+4).enable generate
+         U_Eth : entity work.Sgmii88E1111LvdsUltraScale
+            generic map (
+               TPD_G             => TPD_G,
+               STABLE_CLK_FREQ_G => AXIL_CLK_FREQ_C)
+            port map (
+               -- clock and reset
+               stableClk   => axilClk,
+               extRst      => axilRst,
+               -- Local Configurations/status
+               localMac    => localMac(i+4),
+               linkUp      => ethLinkUp(i+4),
+               -- Interface to Ethernet Media Access Controller (MAC)
+               macClk      => axilClk,
+               macRst      => axilRst,
+               obMacMaster => obMacMasters(i+4),
+               obMacSlave  => obMacSlaves(i+4),
+               ibMacMaster => ibMacMasters(i+4),
+               ibMacSlave  => ibMacSlaves(i+4),
+               -- ETH external PHY Ports
+               phyClkP     => ethRefClkP(i),
+               phyClkN     => ethRefClkN(i),
+               phyMdc      => ethMdc(i),
+               phyMdio     => ethMdio(i),
+               phyRstN     => ethRstL(i),
+               phyIrqN     => ethIrqL(i),
+               -- Synchronous LVDS SGMII Ports
+               sgmiiTxP    => ethTxP(i),
+               sgmiiTxN    => ethTxN(i),
+               sgmiiRxP    => ethRxP(i),
+               sgmiiRxN    => ethRxN(i));
+      end generate;
+
+      DIS_ETH : if not(ETH_CONFIG_G(i+4).enable) generate
+
+         U_Clk : IBUFDS
+            port map (
+               I  => ethRefClkP(i),
+               IB => ethRefClkN(i),
+               O  => open);
+
+         U_Rx : IBUFDS
+            port map (
+               I  => ethRxP(i),
+               IB => ethRxN(i),
+               O  => open);
+
+         U_Tx : OBUFDS
+            port map (
+               I  => '0',
+               O  => ethTxP(i),
+               OB => ethTxN(i));
+
+      end generate;
+
+   end generate GEN_SGMII;
 
    GEN_VEC :
    for i in 5 downto 0 generate

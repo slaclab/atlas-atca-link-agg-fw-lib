@@ -425,10 +425,10 @@ begin
                mAppAxisMasters_o(0) => cltObMasters(i),
                mAppAxisSlaves_i(0)  => cltObSlaves(i),
                -- Transport Layer Interface
-               sTspAxisMaster_i     => obServerMasters(UDP_CLT_DATA_IDX_C+i),
-               sTspAxisSlave_o      => obServerSlaves(UDP_CLT_DATA_IDX_C+i),
-               mTspAxisMaster_o     => ibServerMasters(UDP_CLT_DATA_IDX_C+i),
-               mTspAxisSlave_i      => ibServerSlaves(UDP_CLT_DATA_IDX_C+i),
+               sTspAxisMaster_i     => obClientMasters(UDP_CLT_DATA_IDX_C+i),
+               sTspAxisSlave_o      => obClientSlaves(UDP_CLT_DATA_IDX_C+i),
+               mTspAxisMaster_o     => ibClientMasters(UDP_CLT_DATA_IDX_C+i),
+               mTspAxisSlave_i      => ibClientSlaves(UDP_CLT_DATA_IDX_C+i),
                -- High level  Application side interface
                openRq_i             => '0',   -- Enabled via software
                closeRq_i            => '0',

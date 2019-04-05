@@ -76,26 +76,22 @@ entity AtlasAtcaLinkAggCore is
       -- Front Panel I2C Ports
       fpScl           : inout sl;
       fpSda           : inout sl;
-      sfpScl          : inout slv(4 downto 0);
-      sfpSda          : inout slv(4 downto 0);
+      sfpScl          : inout slv(3 downto 0);
+      sfpSda          : inout slv(3 downto 0);
       qsfpScl         : inout slv(1 downto 0);
       qsfpSda         : inout slv(1 downto 0);
-      -- Front Panel LVDS SGMII Ports
-      fpEthTxP        : out   sl;
-      fpEthTxN        : out   sl;
-      fpEthRxP        : in    sl;
-      fpEthRxN        : in    sl;
-      -- ATCA Backplane: BASE ETH[1] Ports
-      baseEthRefClkP  : in    sl;
-      baseEthRefClkN  : in    sl;
-      baseEthTxP      : out   sl;
-      baseEthTxN      : out   sl;
-      baseEthRxP      : in    sl;
-      baseEthRxN      : in    sl;
-      baseEthMdio     : inout sl;
-      baseEthMdc      : out   sl;
-      baseEthRstL     : out   sl;
-      baseEthIrqL     : in    sl;
+      -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
+      fpEthLed          : out   slv(3 downto 0);
+      ethRefClkP        : in    slv(1 downto 0);
+      ethRefClkN        : in    slv(1 downto 0);
+      ethTxP            : out   slv(1 downto 0);
+      ethTxN            : out   slv(1 downto 0);
+      ethRxP            : in    slv(1 downto 0);
+      ethRxN            : in    slv(1 downto 0);
+      ethMdio           : inout slv(1 downto 0);
+      ethMdc            : out   slv(1 downto 0);
+      ethRstL           : out   slv(1 downto 0);
+      ethIrqL           : in    slv(1 downto 0);
       -- ATCA Backplane: FABRIC ETH[1:4]
       fabEthRefClkP   : in    sl;
       fabEthRefClkN   : in    sl;
@@ -254,22 +250,18 @@ begin
          -------------------   
          --  Top Level Ports
          -------------------      
-         -- Front Panel LVDS SGMII Ports
-         fpEthTxP          => fpEthTxP,
-         fpEthTxN          => fpEthTxN,
-         fpEthRxP          => fpEthRxP,
-         fpEthRxN          => fpEthRxN,
-         -- ATCA Backplane: BASE ETH[1] Ports
-         baseEthRefClkP    => baseEthRefClkP,
-         baseEthRefClkN    => baseEthRefClkN,
-         baseEthTxP        => baseEthTxP,
-         baseEthTxN        => baseEthTxN,
-         baseEthRxP        => baseEthRxP,
-         baseEthRxN        => baseEthRxN,
-         baseEthMdio       => baseEthMdio,
-         baseEthMdc        => baseEthMdc,
-         baseEthRstL       => baseEthRstL,
-         baseEthIrqL       => baseEthIrqL,
+         -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
+         fpEthLed          => fpEthLed,
+         ethRefClkP        => ethRefClkP,
+         ethRefClkN        => ethRefClkN,
+         ethTxP            => ethTxP,
+         ethTxN            => ethTxN,
+         ethRxP            => ethRxP,
+         ethRxN            => ethRxN,
+         ethMdio           => ethMdio,
+         ethMdc            => ethMdc,
+         ethRstL           => ethRstL,
+         ethIrqL           => ethIrqL,
          -- ATCA Backplane: FABRIC ETH[1:4]
          fabEthRefClk      => fabEthRefClk,
          fabEthTxP         => fabEthTxP,
@@ -455,7 +447,7 @@ begin
       bootMiso <= di(1);
 
       GEN_SFP :
-      for i in 4 downto 0 generate
+      for i in 3 downto 0 generate
          U_I2C : entity work.AxiI2cRegMaster
             generic map (
                TPD_G          => TPD_G,

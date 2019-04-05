@@ -18,9 +18,6 @@ set_property -dict { PACKAGE_PIN AJ16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [
 
 # Front Panel Clock/LED/TTL Ports
 
-set_property -dict { PACKAGE_PIN AJ18 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100  } [get_ports { lemoClkP }]
-set_property -dict { PACKAGE_PIN AK18 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100  } [get_ports { lemoClkN }]
-
 set_property -dict { PACKAGE_PIN AK17 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100  } [get_ports { smaClkP }]
 set_property -dict { PACKAGE_PIN AK16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100  } [get_ports { smaClkN }]
 

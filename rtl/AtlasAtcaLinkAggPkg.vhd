@@ -63,16 +63,59 @@ package AtlasAtcaLinkAggPkg is
       enXvc       => false,
       enSrp       => true,
       fabConfig   => ETH_1G_1LANE,
+      enDataJumbo => false,
       -- Streaming Data Server Configurations
-      numSrvData  => 0,
-      enSrvDataTx => true,
-      enSrvDataRx => true,
+      numSrvData  => 1, --- debuging!!!!!!!!!!!!!!!!!!!!
+      -- numSrvData  => 0,
+      enSrvDataTx => false,
+      enSrvDataRx => false,
       -- Streaming Data Client Configurations
       numCltData  => 0,
-      enCltDataTx => true,
-      enCltDataRx => true,
-      enDataJumbo => false);
-   type EthConfigArray is array (NUM_ETH_C-1 downto 0) of EthConfigType;  -- ETH_CONFIG_G[3:0] = FAB_ETH[4:1], ETH_CONFIG_G[4] = BASE_ETH, ETH_CONFIG_G[5] = FP_ETH
+      enCltDataTx => false,
+      enCltDataRx => false);
+   constant ETH_PORT_SRP_ONLY_C : EthConfigType := ETH_CONFIG_INIT_C;
+   constant ETH_PORT_SRP_XVC_C : EthConfigType := (
+      enable      => ETH_CONFIG_INIT_C.enable,
+      enDhcp      => ETH_CONFIG_INIT_C.enDhcp,
+      enXvc       => true,
+      enSrp       => ETH_CONFIG_INIT_C.enSrp,
+      fabConfig   => ETH_CONFIG_INIT_C.fabConfig,
+      enDataJumbo => ETH_CONFIG_INIT_C.enDataJumbo,
+      -- Streaming Data Server Configurations
+      numSrvData  => ETH_CONFIG_INIT_C.numSrvData,
+      enSrvDataTx => ETH_CONFIG_INIT_C.enSrvDataTx,
+      enSrvDataRx => ETH_CONFIG_INIT_C.enSrvDataRx,
+      -- Streaming Data Client Configurations
+      numCltData  => ETH_CONFIG_INIT_C.numCltData,
+      enCltDataTx => ETH_CONFIG_INIT_C.enCltDataTx,
+      enCltDataRx => ETH_CONFIG_INIT_C.enCltDataRx);
+   constant ETH_PORT_DISABLED_C : EthConfigType := (
+      enable      => false,
+      enDhcp      => ETH_CONFIG_INIT_C.enDhcp,
+      enXvc       => ETH_CONFIG_INIT_C.enXvc,
+      enSrp       => ETH_CONFIG_INIT_C.enSrp,
+      fabConfig   => ETH_CONFIG_INIT_C.fabConfig,
+      enDataJumbo => ETH_CONFIG_INIT_C.enDataJumbo,
+      -- Streaming Data Server Configurations
+      numSrvData  => ETH_CONFIG_INIT_C.numSrvData,
+      enSrvDataTx => ETH_CONFIG_INIT_C.enSrvDataTx,
+      enSrvDataRx => ETH_CONFIG_INIT_C.enSrvDataRx,
+      -- Streaming Data Client Configurations
+      numCltData  => ETH_CONFIG_INIT_C.numCltData,
+      enCltDataTx => ETH_CONFIG_INIT_C.enCltDataTx,
+      enCltDataRx => ETH_CONFIG_INIT_C.enCltDataRx);
+
+   type EthConfigArray is array (NUM_ETH_C-1 downto 0) of EthConfigType;
+
+   -----------------------------------------------------------------------------------------
+   -- ETH_CONFIG_G[3:0] = FAB_ETH[4:1], ETH_CONFIG_G[4] = BASE_ETH, ETH_CONFIG_G[5] = FP_ETH
+   -----------------------------------------------------------------------------------------
+   constant ETH_FAB1_IDX_C  : natural := 0;
+   constant ETH_FAB2_IDX_C  : natural := 1;
+   constant ETH_FAB3_IDX_C  : natural := 2;
+   constant ETH_FAB4_IDX_C  : natural := 3;
+   constant ETH_BASE1_IDX_C : natural := 4;
+   constant ETH_FP_IDX_C    : natural := 5;
 
    ---------------------------------------------------
    -- BSI: Configurations, Constants and Records Types
