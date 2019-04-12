@@ -47,6 +47,12 @@ architecture mapping of AtlasAtcaLinkAggClk is
    signal fabClock  : sl;
    signal fabReset  : sl;
 
+   signal CLKOUT0 : sl;
+   signal CLKOUT1 : sl;
+   signal clkFb   : sl;
+   signal locked  : sl;
+
+
    signal axilClock : sl;
    signal axilReset : sl;
 
@@ -58,11 +64,11 @@ architecture mapping of AtlasAtcaLinkAggClk is
 
 begin
 
-   axilClk <= axilClock;
-   axilRst <= axilReset;
-
    ref156Clk <= fabClock;
    ref156Rst <= fabReset;
+
+   axilClk <= axilClock;
+   axilRst <= axilReset;
 
    eth125Clk <= eth125Clock;
    eth125Rst <= eth125Reset;
@@ -103,47 +109,103 @@ begin
          clk    => fabClock,
          rstOut => fabReset);
 
-   U_Pll : entity work.ClockManagerUltraScale
-      generic map(
-         TPD_G             => TPD_G,
-         SIMULATION_G      => SIMULATION_G,
-         TYPE_G            => "PLL",
-         INPUT_BUFG_G      => false,
-         FB_BUFG_G         => true,
-         RST_IN_POLARITY_G => '1',
-         NUM_CLOCKS_G      => 2,
-         -- MMCM attributes
-         BANDWIDTH_G       => "OPTIMIZED",
-         CLKIN_PERIOD_G    => 6.4,      -- 156.25 MHz
-         CLKFBOUT_MULT_G   => 8,        -- 1.25GHz=156.25 MHz*8
-         CLKOUT0_DIVIDE_G  => 8,        -- 156.25MHz=1.25GHz/8
-         CLKOUT1_DIVIDE_G  => 10)       -- 125MHz=1.25GHz/10
-      port map(
-         -- Clock Input
-         clkIn     => fabClock,
-         rstIn     => fabReset,
-         -- Clock Outputs
-         clkOut(0) => axilClock,
-         clkOut(1) => eth125Clock,
-         -- Reset Outputs
-         rstOut(0) => axilReset,
-         rstOut(1) => eth125Reset);
+   ----------------
+   -- Clock Manager
+   ----------------
+   GEN_REAL : if (SIMULATION_G = false) generate
+      U_PLL : PLLE3_BASE
+         generic map(
+            CLKIN_PERIOD   => 6.4,
+            DIVCLK_DIVIDE  => 1,
+            CLKFBOUT_MULT  => 8,        -- 1.25GHz
+            CLKOUT0_DIVIDE => 8,        -- 156.25 MHz
+            CLKOUT1_DIVIDE => 10)       -- 125 MHz
+         port map (
+            CLKIN       => fabClock,    -- 125 MHz
+            RST         => fabReset,
+            PWRDWN      => '0',
+            CLKOUTPHYEN => '0',
+            CLKFBIN     => clkFb,
+            CLKFBOUT    => clkFb,
+            CLKOUT0     => CLKOUT0,
+            CLKOUT1     => CLKOUT1,
+            LOCKED      => locked);
+   end generate GEN_REAL;
 
+   GEN_SIM : if (SIMULATION_G = true) generate
+
+      U_Clk156 : entity work.ClkRst
+         generic map (
+            CLK_PERIOD_G      => 6.4 ns,
+            RST_START_DELAY_G => 0 ns,
+            RST_HOLD_TIME_G   => 1000 ns)
+         port map (
+            clkP => CLKOUT0,
+            rstL => locked);
+
+      U_Clk125 : entity work.ClkRst
+         generic map (
+            CLK_PERIOD_G      => 8.0 ns,
+            RST_START_DELAY_G => 0 ns,
+            RST_HOLD_TIME_G   => 1000 ns)
+         port map (
+            clkP => CLKOUT1);
+
+   end generate GEN_SIM;
+
+   -------------------
+   -- 156.25 MHz Clock
+   -------------------
+   U_axilClk : BUFG
+      port map (
+         I => CLKOUT0,
+         O => axilClock);
+
+   U_axilRst : entity work.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => '0')
+      port map (
+         clk      => axilClock,
+         asyncRst => locked,
+         syncRst  => axilReset);
+
+   ----------------
+   -- 125 MHz Clock
+   ----------------
+   U_eth125Clk : BUFG
+      port map (
+         I => CLKOUT1,
+         O => eth125Clock);
+
+   U_eth125Rst : entity work.RstSync
+      generic map (
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => '0')
+      port map (
+         clk      => eth125Clock,
+         asyncRst => locked,
+         syncRst  => eth125Reset);
+
+   ----------------
+   -- 62.5 MHz Clock
+   ----------------   
    U_eth62Clk : BUFGCE_DIV
       generic map (
          BUFGCE_DIVIDE => 2)
       port map (
-         I   => eth125Clock,
+         I   => CLKOUT1,
          CE  => '1',
          CLR => eth125Reset,
          O   => eth62Clock);
 
    U_eth62Rst : entity work.RstSync
       generic map (
-         TPD_G => TPD_G)
+         TPD_G         => TPD_G,
+         IN_POLARITY_G => '0')
       port map (
          clk      => eth62Clock,
-         asyncRst => eth125Reset,
+         asyncRst => locked,
          syncRst  => eth62Reset);
 
 end mapping;

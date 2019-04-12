@@ -32,19 +32,24 @@ set_property -dict { PACKAGE_PIN AL19 IOSTANDARD LVCMOS18 } [get_ports { pllSpiS
 set_property -dict { PACKAGE_PIN AF10 IOSTANDARD LVCMOS33 } [get_ports { pllClkScl }]
 set_property -dict { PACKAGE_PIN AG10 IOSTANDARD LVCMOS33 } [get_ports { pllClkSda }]
 
-
 # Front Panel I2C Ports
 
 set_property -dict { PACKAGE_PIN AG11 IOSTANDARD LVCMOS33 } [get_ports { fpScl }]
 set_property -dict { PACKAGE_PIN AH11 IOSTANDARD LVCMOS33 } [get_ports { fpSda }]
 
-set_property -dict { PACKAGE_PIN AD8  IOSTANDARD LVCMOS33 } [get_ports { qsfpScl[0] }]
-set_property -dict { PACKAGE_PIN AD10 IOSTANDARD LVCMOS33 } [get_ports { qsfpScl[1] }]
+set_property -dict { PACKAGE_PIN AE10 IOSTANDARD LVCMOS33 } [get_ports { sfpScl[0]  }]
+set_property -dict { PACKAGE_PIN AE8  IOSTANDARD LVCMOS33 } [get_ports { sfpScl[1]  }]
+set_property -dict { PACKAGE_PIN AF8  IOSTANDARD LVCMOS33 } [get_ports { sfpScl[2]  }]
+set_property -dict { PACKAGE_PIN AF9  IOSTANDARD LVCMOS33 } [get_ports { sfpScl[3]  }]
 
 set_property -dict { PACKAGE_PIN AJ9  IOSTANDARD LVCMOS33 } [get_ports { sfpSda[0]  }]
 set_property -dict { PACKAGE_PIN AJ8  IOSTANDARD LVCMOS33 } [get_ports { sfpSda[1]  }]
 set_property -dict { PACKAGE_PIN AN8  IOSTANDARD LVCMOS33 } [get_ports { sfpSda[2]  }]
 set_property -dict { PACKAGE_PIN AP8  IOSTANDARD LVCMOS33 } [get_ports { sfpSda[3]  }]
+
+set_property -dict { PACKAGE_PIN AD8  IOSTANDARD LVCMOS33 } [get_ports { qsfpScl[0] }]
+set_property -dict { PACKAGE_PIN AD10 IOSTANDARD LVCMOS33 } [get_ports { qsfpScl[1] }]
+
 set_property -dict { PACKAGE_PIN AL9  IOSTANDARD LVCMOS33 } [get_ports { qsfpSda[0] }]
 set_property -dict { PACKAGE_PIN AN9  IOSTANDARD LVCMOS33 } [get_ports { qsfpSda[1] }]
 
@@ -63,16 +68,16 @@ set_property -dict { PACKAGE_PIN AM15 IOSTANDARD LVCMOS18 } [get_ports { ethMdc[
 set_property -dict { PACKAGE_PIN AN18 IOSTANDARD LVCMOS18 } [get_ports { ethRstL[1] }];
 set_property -dict { PACKAGE_PIN AN17 IOSTANDARD LVCMOS18 } [get_ports { ethIrqL[1] }];
 
-set_property -dict { PACKAGE_PIN AN14 IOSTANDARD LVDS } [get_ports { ethTxP[1] }]
-set_property -dict { PACKAGE_PIN AP14 IOSTANDARD LVDS } [get_ports { ethTxN[1] }]
+set_property -dict { PACKAGE_PIN AM17 IOSTANDARD LVDS } [get_ports { ethTxP[1] }]
+set_property -dict { PACKAGE_PIN AN16 IOSTANDARD LVDS } [get_ports { ethTxN[1] }]
 
 set_property -dict { PACKAGE_PIN AN19 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { ethRxP[1] }]
 set_property -dict { PACKAGE_PIN AP18 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { ethRxN[1] }]
 
 # ATCA Backplane: BASE ETH[1] Ports
 
-set_property -dict { PACKAGE_PIN AH18 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { ethRefClkP[0] }]
-set_property -dict { PACKAGE_PIN AH17 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { ethRefClkN[0] }]
+set_property -dict { PACKAGE_PIN AH16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { ethRefClkP[0] }]
+set_property -dict { PACKAGE_PIN AJ16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { ethRefClkN[0] }]
 
 set_property -dict { PACKAGE_PIN AE18 IOSTANDARD LVCMOS18 } [get_ports { ethMdio[0] }];
 set_property -dict { PACKAGE_PIN AF18 IOSTANDARD LVCMOS18 } [get_ports { ethMdc[0]  }];

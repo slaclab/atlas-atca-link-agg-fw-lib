@@ -13,8 +13,8 @@
 set_property -dict { PACKAGE_PIN AG17 IOSTANDARD LVDS } [get_ports { fpgaToPllClkP }]
 set_property -dict { PACKAGE_PIN AG16 IOSTANDARD LVDS } [get_ports { fpgaToPllClkN }]
 
-set_property -dict { PACKAGE_PIN AH16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { pllToFpgaClkP }]
-set_property -dict { PACKAGE_PIN AJ16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { pllToFpgaClkN }]
+set_property -dict { PACKAGE_PIN AH18 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { pllToFpgaClkP }]
+set_property -dict { PACKAGE_PIN AH17 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { pllToFpgaClkN }]
 
 # Front Panel Clock/LED/TTL Ports
 
@@ -42,12 +42,12 @@ set_property -dict { PACKAGE_PIN AP13 IOSTANDARD LVCMOS33 SLEW FAST } [get_ports
 set_property -dict { PACKAGE_PIN AP11 IOSTANDARD LVCMOS33 SLEW FAST } [get_ports { bpClkOut[4] }]
 set_property -dict { PACKAGE_PIN AP10 IOSTANDARD LVCMOS33 SLEW FAST } [get_ports { bpClkOut[5] }]
 
-set_property -dict { PACKAGE_PIN G17  IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { bpClkIn[0] }]
-set_property -dict { PACKAGE_PIN G16  IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { bpClkIn[1] }]
-set_property -dict { PACKAGE_PIN P26  IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { bpClkIn[2] }]
-set_property -dict { PACKAGE_PIN AA32 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { bpClkIn[3] }]
-set_property -dict { PACKAGE_PIN AB32 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { bpClkIn[4] }]
-set_property -dict { PACKAGE_PIN AJ21 IOSTANDARD LVCMOS18 SLEW FAST } [get_ports { bpClkIn[5] }]
+set_property -dict { PACKAGE_PIN G17  IOSTANDARD LVCMOS18 } [get_ports { bpClkIn[0] }]
+set_property -dict { PACKAGE_PIN G16  IOSTANDARD LVCMOS18 } [get_ports { bpClkIn[1] }]
+set_property -dict { PACKAGE_PIN P26  IOSTANDARD LVCMOS18 } [get_ports { bpClkIn[2] }]
+set_property -dict { PACKAGE_PIN AA32 IOSTANDARD LVCMOS18 } [get_ports { bpClkIn[3] }]
+set_property -dict { PACKAGE_PIN AB32 IOSTANDARD LVCMOS18 } [get_ports { bpClkIn[4] }]
+set_property -dict { PACKAGE_PIN AJ21 IOSTANDARD LVCMOS18 } [get_ports { bpClkIn[5] }]
 
 # Front Panel QSFP+ Ports
 

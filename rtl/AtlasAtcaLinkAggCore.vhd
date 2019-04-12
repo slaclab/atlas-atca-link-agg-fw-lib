@@ -21,9 +21,7 @@ use ieee.std_logic_unsigned.all;
 use work.StdRtlPkg.all;
 use work.AxiLitePkg.all;
 use work.AxiStreamPkg.all;
-use work.I2cPkg.all;
 use work.AtlasAtcaLinkAggPkg.all;
-use work.AtlasAtcaLinkAggRegPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -81,17 +79,17 @@ entity AtlasAtcaLinkAggCore is
       qsfpScl         : inout slv(1 downto 0);
       qsfpSda         : inout slv(1 downto 0);
       -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
-      fpEthLed          : out   slv(3 downto 0);
-      ethRefClkP        : in    slv(1 downto 0);
-      ethRefClkN        : in    slv(1 downto 0);
-      ethTxP            : out   slv(1 downto 0);
-      ethTxN            : out   slv(1 downto 0);
-      ethRxP            : in    slv(1 downto 0);
-      ethRxN            : in    slv(1 downto 0);
-      ethMdio           : inout slv(1 downto 0);
-      ethMdc            : out   slv(1 downto 0);
-      ethRstL           : out   slv(1 downto 0);
-      ethIrqL           : in    slv(1 downto 0);
+      fpEthLed        : out   slv(3 downto 0);
+      ethRefClkP      : in    slv(1 downto 0);
+      ethRefClkN      : in    slv(1 downto 0);
+      ethTxP          : out   slv(1 downto 0);
+      ethTxN          : out   slv(1 downto 0);
+      ethRxP          : in    slv(1 downto 0);
+      ethRxN          : in    slv(1 downto 0);
+      ethMdio         : inout slv(1 downto 0);
+      ethMdc          : out   slv(1 downto 0);
+      ethRstL         : out   slv(1 downto 0);
+      ethIrqL         : in    slv(1 downto 0);
       -- ATCA Backplane: FABRIC ETH[1:4]
       fabEthRefClkP   : in    sl;
       fabEthRefClkN   : in    sl;
@@ -109,20 +107,54 @@ end AtlasAtcaLinkAggCore;
 
 architecture mapping of AtlasAtcaLinkAggCore is
 
+   function genRouteTable
+      return slv is
+      variable retVar : slv(15 downto 0);
+   begin
+      retVar := x"0000";      
+      for i in NUM_ETH_C-1 downto 0 loop
+         if (ETH_CONFIG_G(i).enable) and (ETH_CONFIG_G(i).enSrp) then
+            retVar(i) := '1';
+         end if;
+      end loop;
+      return retVar;
+   end function;
+   constant M_AXIL_CONNECT_C : slv(15 downto 0) := genRouteTable;
+   
+   constant NUM_AXIL_MASTERS_C    : positive := 4;
+   
+   constant BASE_INDEX_C    : natural := 0;
+   constant PLL_SPI_INDEX_C : natural := 1;
+   constant ETH_INDEX_C     : natural := 2;
+   constant APP_INDEX_C     : natural := 3;
+
+   constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
+      BASE_INDEX_C    => (
+         baseAddr     => x"0000_0000",
+         addrBits     => 16,
+         connectivity => M_AXIL_CONNECT_C),
+      PLL_SPI_INDEX_C => (
+         baseAddr     => x"0001_0000",
+         addrBits     => 16,
+         connectivity => M_AXIL_CONNECT_C),
+      ETH_INDEX_C     => (
+         baseAddr     => x"0100_0000",
+         addrBits     => 24,
+         connectivity => M_AXIL_CONNECT_C),
+      APP_INDEX_C     => (
+         baseAddr     => APP_AXIL_BASE_ADDR_C,
+         addrBits     => 31,
+         connectivity => M_AXIL_CONNECT_C));
+         
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C);
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C);
+
    signal mAxilReadMasters  : AxiLiteReadMasterArray(NUM_ETH_C-1 downto 0);
    signal mAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_ETH_C-1 downto 0);
    signal mAxilWriteMasters : AxiLiteWriteMasterArray(NUM_ETH_C-1 downto 0);
    signal mAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_ETH_C-1 downto 0);
-
-   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C(0)-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C(0)-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C);
-   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C(0)-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C(0)-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C);
-
-   signal baseWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C(1)-1 downto 0);
-   signal baseWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C(1)-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C);
-   signal baseReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C(1)-1 downto 0);
-   signal baseReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C(1)-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C);
 
    signal bsiBus    : BsiBusType;
    signal localIp   : Slv32Array(NUM_ETH_C-1 downto 0);
@@ -137,20 +169,6 @@ architecture mapping of AtlasAtcaLinkAggCore is
    signal eth62Clk     : sl;
    signal eth62Rst     : sl;
    signal fabEthRefClk : sl;
-
-   signal axilRstL  : sl;
-   signal bootCmd   : sl;
-   signal bootReq   : sl;
-   signal bootstart : sl;
-   signal bootAddr  : slv(31 downto 0);
-   signal upTimeCnt : slv(31 downto 0);
-
-   signal bootCsL  : sl;
-   signal bootSck  : sl;
-   signal bootMosi : sl;
-   signal bootMiso : sl;
-   signal di       : slv(3 downto 0);
-   signal do       : slv(3 downto 0);
 
 begin
 
@@ -184,6 +202,19 @@ begin
          arst   => axilReset,
          rstOut => pllSpiRstL);
 
+   process(bsiBus)
+      variable tmp : BsiBusType;
+   begin
+      tmp := bsiBus;
+      for i in NUM_ETH_C-1 downto 0 loop
+         if (ETH_CONFIG_G(i).enable) then
+            -- Prevent application from using allocated MAC address
+            tmp.macAddress(i) := (others => '0');
+         end if;
+      end loop;
+      ipmiBsi <= tmp;
+   end process;
+
    --------------------------------
    -- Common Clock and Reset Module
    -------------------------------- 
@@ -211,7 +242,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          SIMULATION_G     => SIMULATION_G,
-         AXIL_BASE_ADDR_G => XBAR_CONFIG_0_C(ETH_INDEX_C).baseAddr,
+         AXIL_BASE_ADDR_G => XBAR_CONFIG_C(ETH_INDEX_C).baseAddr,
          ETH_CONFIG_G     => ETH_CONFIG_G)
       port map (
          -- Clocks and Resets
@@ -272,12 +303,12 @@ begin
    --------------------------
    -- AXI-Lite: Crossbar Core
    --------------------------  
-   U_XBAR_0 : entity work.AxiLiteCrossbar
+   U_XBAR : entity work.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 6,
-         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C(0),
-         MASTERS_CONFIG_G   => XBAR_CONFIG_0_C)
+         NUM_SLAVE_SLOTS_G  => NUM_ETH_C,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => XBAR_CONFIG_C)
       port map (
          axiClk           => axilClock,
          axiClkRst        => axilReset,
@@ -290,244 +321,48 @@ begin
          mAxiReadMasters  => axilReadMasters,
          mAxiReadSlaves   => axilReadSlaves);
 
-   U_XBAR_1 : entity work.AxiLiteCrossbar
+   -------------------
+   -- System Registers
+   -------------------    
+   U_SysReg : entity work.AtlasAtcaLinkAggReg
       generic map (
-         TPD_G              => TPD_G,
-         NUM_SLAVE_SLOTS_G  => 1,
-         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C(1),
-         MASTERS_CONFIG_G   => XBAR_CONFIG_1_C)
-      port map (
-         axiClk              => axilClock,
-         axiClkRst           => axilReset,
-         sAxiWriteMasters(0) => axilWriteMasters(BASE_INDEX_C),
-         sAxiWriteSlaves(0)  => axilWriteSlaves(BASE_INDEX_C),
-         sAxiReadMasters(0)  => axilReadMasters(BASE_INDEX_C),
-         sAxiReadSlaves(0)   => axilReadSlaves(BASE_INDEX_C),
-         mAxiWriteMasters    => baseWriteMasters,
-         mAxiWriteSlaves     => baseWriteSlaves,
-         mAxiReadMasters     => baseReadMasters,
-         mAxiReadSlaves      => baseReadSlaves);
-
-   --------------------------
-   -- AXI-Lite Version Module
-   --------------------------
-   U_Version : entity work.AxiVersion
-      generic map (
-         TPD_G           => TPD_G,
-         BUILD_INFO_G    => BUILD_INFO_G,
-         CLK_PERIOD_G    => AXIL_CLK_PERIOD_C,
-         XIL_DEVICE_G    => XIL_DEVICE_C,
-         EN_DEVICE_DNA_G => true)
+         TPD_G            => TPD_G,
+         SIMULATION_G     => SIMULATION_G,
+         AXIL_BASE_ADDR_G => XBAR_CONFIG_C(BASE_INDEX_C).baseAddr,
+         BUILD_INFO_G     => BUILD_INFO_G)
       port map (
          -- AXI-Lite Interface
-         axiClk         => axilClock,
-         axiRst         => axilReset,
-         upTimeCnt      => upTimeCnt,
-         fpgaReload     => bootCmd,
-         axiReadMaster  => baseReadMasters(VERSION_INDEX_C),
-         axiReadSlave   => baseReadSlaves(VERSION_INDEX_C),
-         axiWriteMaster => baseWriteMasters(VERSION_INDEX_C),
-         axiWriteSlave  => baseWriteSlaves(VERSION_INDEX_C));
-
-   bootstart <= bootCmd or bootReq;
-
-   -----------------------
-   -- AXI-Lite: BSI Module
-   -----------------------
-   U_Bsi : entity work.AtlasAtcaLinkAggBsi
-      generic map (
-         TPD_G        => TPD_G,
-         BUILD_INFO_G => BUILD_INFO_G)
-      port map (
-         -- Local Configurations
-         bsiBus          => bsiBus,
+         axilClk         => axilClock,
+         axilRst         => axilReset,
+         axilReadMaster  => axilReadMasters(BASE_INDEX_C),
+         axilReadSlave   => axilReadSlaves(BASE_INDEX_C),
+         axilWriteMaster => axilWriteMasters(BASE_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(BASE_INDEX_C),
+         -- Misc. Interface 
          localIp         => localIp,
          ethLinkUp       => ethLinkUp,
-         bootReq         => bootReq,
-         bootAddr        => bootAddr,
-         upTimeCnt       => upTimeCnt,
-         -- I2C Ports
-         scl             => ipmcScl,
-         sda             => ipmcSda,
-         -- AXI-Lite Register Interface
-         axilReadMaster  => baseReadMasters(IPMC_INDEX_C),
-         axilReadSlave   => baseReadSlaves(IPMC_INDEX_C),
-         axilWriteMaster => baseWriteMasters(IPMC_INDEX_C),
-         axilWriteSlave  => baseWriteSlaves(IPMC_INDEX_C),
-         -- Clocks and Resets
-         axilClk         => axilClock,
-         axilRst         => axilReset);
-
-   process(bsiBus)
-      variable tmp : BsiBusType;
-   begin
-      tmp := bsiBus;
-      for i in NUM_ETH_C-1 downto 0 loop
-         if (ETH_CONFIG_G(i).enable) then
-            -- Prevent application from using allocated MAC address
-            tmp.macAddress(i) := (others => '0');
-         end if;
-      end loop;
-      ipmiBsi <= tmp;
-   end process;
+         bsiBus          => bsiBus,
+         -------------------   
+         --  Top Level Ports
+         -------------------   
+         -- Jitter Cleaner PLL Ports
+         pllClkScl       => pllClkScl,
+         pllClkSda       => pllClkSda,
+         -- Front Panel I2C Ports
+         fpScl           => fpScl,
+         fpSda           => fpSda,
+         sfpScl          => sfpScl,
+         sfpSda          => sfpSda,
+         qsfpScl         => qsfpScl,
+         qsfpSda         => qsfpSda,
+         -- IMPC Ports
+         ipmcScl         => ipmcScl,
+         ipmcSda         => ipmcSda,
+         -- SYSMON Ports
+         vPIn            => vPIn,
+         vNIn            => vNIn);
 
    NOT_SIM : if (SIMULATION_G = false) generate
-
-      U_Iprog : entity work.Iprog
-         generic map (
-            TPD_G        => TPD_G,
-            XIL_DEVICE_G => XIL_DEVICE_C)
-         port map (
-            clk         => axilClock,
-            rst         => axilReset,
-            start       => bootstart,
-            bootAddress => bootAddr);
-
-      U_SysMon : entity work.AtlasAtcaLinkAggSysMon
-         generic map (
-            TPD_G => TPD_G)
-         port map (
-            -- SYSMON Ports
-            vPIn            => vPIn,
-            vNIn            => vNIn,
-            -- AXI-Lite Register Interface
-            axilReadMaster  => baseReadMasters(SYSMON_INDEX_C),
-            axilReadSlave   => baseReadSlaves(SYSMON_INDEX_C),
-            axilWriteMaster => baseWriteMasters(SYSMON_INDEX_C),
-            axilWriteSlave  => baseWriteSlaves(SYSMON_INDEX_C),
-            -- Clocks and Resets
-            axilClk         => axilClock,
-            axilRst         => axilReset);
-
-      U_BootProm : entity work.AxiMicronN25QCore
-         generic map (
-            TPD_G          => TPD_G,
-            AXI_CLK_FREQ_G => AXIL_CLK_FREQ_C,        -- units of Hz
-            SPI_CLK_FREQ_G => (AXIL_CLK_FREQ_C/4.0))  -- units of Hz
-         port map (
-            -- FLASH Memory Ports
-            csL            => bootCsL,
-            sck            => bootSck,
-            mosi           => bootMosi,
-            miso           => bootMiso,
-            -- AXI-Lite Register Interface
-            axiReadMaster  => baseReadMasters(BOOT_MEM_INDEX_C),
-            axiReadSlave   => baseReadSlaves(BOOT_MEM_INDEX_C),
-            axiWriteMaster => baseWriteMasters(BOOT_MEM_INDEX_C),
-            axiWriteSlave  => baseWriteSlaves(BOOT_MEM_INDEX_C),
-            -- Clocks and Resets
-            axiClk         => axilClock,
-            axiRst         => axilReset);
-
-      U_STARTUPE3 : STARTUPE3
-         generic map (
-            PROG_USR      => "FALSE",  -- Activate program event security feature. Requires encrypted bitstreams.
-            SIM_CCLK_FREQ => 0.0)  -- Set the Configuration Clock Frequency(ns) for simulation
-         port map (
-            CFGCLK    => open,  -- 1-bit output: Configuration main clock output
-            CFGMCLK   => open,  -- 1-bit output: Configuration internal oscillator clock output
-            DI        => di,  -- 4-bit output: Allow receiving on the D[3:0] input pins
-            EOS       => open,  -- 1-bit output: Active high output signal indicating the End Of Startup.
-            PREQ      => open,  -- 1-bit output: PROGRAM request to fabric output
-            DO        => do,  -- 4-bit input: Allows control of the D[3:0] pin outputs
-            DTS       => "1110",  -- 4-bit input: Allows tristate of the D[3:0] pins
-            FCSBO     => bootCsL,  -- 1-bit input: Contols the FCS_B pin for flash access
-            FCSBTS    => '0',           -- 1-bit input: Tristate the FCS_B pin
-            GSR       => '0',  -- 1-bit input: Global Set/Reset input (GSR cannot be used for the port name)
-            GTS       => '0',  -- 1-bit input: Global 3-state input (GTS cannot be used for the port name)
-            KEYCLEARB => '0',  -- 1-bit input: Clear AES Decrypter Key input from Battery-Backed RAM (BBRAM)
-            PACK      => '0',  -- 1-bit input: PROGRAM acknowledge input
-            USRCCLKO  => bootSck,       -- 1-bit input: User CCLK input
-            USRCCLKTS => '0',  -- 1-bit input: User CCLK 3-state enable input
-            USRDONEO  => axilRstL,  -- 1-bit input: User DONE pin output control
-            USRDONETS => '0');  -- 1-bit input: User DONE 3-state enable output
-
-      axilRstL <= not(axilReset);  -- IPMC uses DONE to determine if FPGA is ready
-      do       <= "111" & bootMosi;
-      bootMiso <= di(1);
-
-      GEN_SFP :
-      for i in 3 downto 0 generate
-         U_I2C : entity work.AxiI2cRegMaster
-            generic map (
-               TPD_G          => TPD_G,
-               I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz
-               DEVICE_MAP_G   => SFF8472_I2C_CONFIG_C,
-               AXI_CLK_FREQ_G => AXIL_CLK_FREQ_C)
-            port map (
-               -- I2C Ports
-               scl            => sfpScl(i),
-               sda            => sfpSda(i),
-               -- AXI-Lite Register Interface
-               axiReadMaster  => baseReadMasters(SFP_I2C_INDEX_C+i),
-               axiReadSlave   => baseReadSlaves(SFP_I2C_INDEX_C+i),
-               axiWriteMaster => baseWriteMasters(SFP_I2C_INDEX_C+i),
-               axiWriteSlave  => baseWriteSlaves(SFP_I2C_INDEX_C+i),
-               -- Clocks and Resets
-               axiClk         => axilClock,
-               axiRst         => axilReset);
-      end generate GEN_SFP;
-
-      GEN_QSFP :
-      for i in 1 downto 0 generate
-         U_I2C : entity work.AxiI2cRegMaster
-            generic map (
-               TPD_G          => TPD_G,
-               I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz
-               DEVICE_MAP_G   => SFF8472_I2C_CONFIG_C,
-               AXI_CLK_FREQ_G => AXIL_CLK_FREQ_C)
-            port map (
-               -- I2C Ports
-               scl            => qsfpScl(i),
-               sda            => qsfpSda(i),
-               -- AXI-Lite Register Interface
-               axiReadMaster  => baseReadMasters(QSFP_I2C_INDEX_C+i),
-               axiReadSlave   => baseReadSlaves(QSFP_I2C_INDEX_C+i),
-               axiWriteMaster => baseWriteMasters(QSFP_I2C_INDEX_C+i),
-               axiWriteSlave  => baseWriteSlaves(QSFP_I2C_INDEX_C+i),
-               -- Clocks and Resets
-               axiClk         => axilClock,
-               axiRst         => axilReset);
-      end generate GEN_QSFP;
-
-      U_FP_I2C : entity work.AxiI2cRegMaster
-         generic map (
-            TPD_G          => TPD_G,
-            I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz
-            DEVICE_MAP_G   => FP_I2C_CONFIG_C,
-            AXI_CLK_FREQ_G => AXIL_CLK_FREQ_C)
-         port map (
-            -- I2C Ports
-            scl            => fpScl,
-            sda            => fpSda,
-            -- AXI-Lite Register Interface
-            axiReadMaster  => baseReadMasters(FP_I2C_INDEX_C),
-            axiReadSlave   => baseReadSlaves(FP_I2C_INDEX_C),
-            axiWriteMaster => baseWriteMasters(FP_I2C_INDEX_C),
-            axiWriteSlave  => baseWriteSlaves(FP_I2C_INDEX_C),
-            -- Clocks and Resets
-            axiClk         => axilClock,
-            axiRst         => axilReset);
-
-      U_PLL_I2C : entity work.AxiI2cRegMaster
-         generic map (
-            TPD_G          => TPD_G,
-            I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz
-            DEVICE_MAP_G   => PLL_I2C_CONFIG_C,
-            AXI_CLK_FREQ_G => AXIL_CLK_FREQ_C)
-         port map (
-            -- I2C Ports
-            scl            => pllClkScl,
-            sda            => pllClkSda,
-            -- AXI-Lite Register Interface
-            axiReadMaster  => baseReadMasters(PLL_I2C_INDEX_C),
-            axiReadSlave   => baseReadSlaves(PLL_I2C_INDEX_C),
-            axiWriteMaster => baseWriteMasters(PLL_I2C_INDEX_C),
-            axiWriteSlave  => baseWriteSlaves(PLL_I2C_INDEX_C),
-            -- Clocks and Resets
-            axiClk         => axilClock,
-            axiRst         => axilReset);
-
       U_PLL_SPI : entity work.Si5345
          generic map (
             TPD_G             => TPD_G,
