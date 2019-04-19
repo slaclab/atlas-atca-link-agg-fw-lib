@@ -106,10 +106,12 @@ architecture mapping of AtlasAtcaLinkAggRudp is
       (UDP_CLT_DATA_IDX_C+6) => 8214,
       (UDP_CLT_DATA_IDX_C+7) => 8215);
 
-   constant TIMEOUT_C               : real     := 1.0E-3;  -- In units of seconds   
-   constant SRP_WINDOW_ADDR_SIZE_C  : positive := 3;
-   constant DATA_WINDOW_ADDR_SIZE_C : positive := 3;
-   constant MAX_SEG_SIZE_C          : positive := ite(ETH_CONFIG_G.enDataJumbo, 8192, 1024);  -- Jumbo frame chucking (data channel only)
+   constant TIMEOUT_C          : real     := 1.0E-3;  -- In units of seconds   
+   -- constant WINDOW_ADDR_SIZE_C : positive := (20-10);  -- 20-bit xpm_memory_sdpram address - log2(8192B/8B/word)
+   constant WINDOW_ADDR_SIZE_C : positive := 4;
+   constant MAX_SEG_SIZE_C     : positive := 8192;    -- Jumbo frame chucking
+   constant SYNTH_MODE_C       : positive := "xpm";
+   constant MEMORY_TYPE_C      : positive := "ultra";
 
    constant SRP_AXIS_CONFIG_C  : AxiStreamConfigArray(0 downto 0) := (others => ssiAxiStreamConfig(4));
    constant DATA_AXIS_CONFIG_C : AxiStreamConfigArray(0 downto 0) := (others => APP_AXIS_CONFIG_C);
@@ -265,23 +267,25 @@ begin
    GEN_SRP : if (ETH_CONFIG_G.enSrp) generate
       U_RssiServer : entity work.RssiCoreWrapper
          generic map (
-            TPD_G              => TPD_G,
-            SERVER_G           => true,
-            CLK_FREQUENCY_G    => AXIL_CLK_FREQ_C,
-            TIMEOUT_UNIT_G     => TIMEOUT_C,
-            APP_ILEAVE_EN_G    => true,   -- true = AxiStreamPacketizer2
-            APP_STREAMS_G      => 1,
-            WINDOW_ADDR_SIZE_G => SRP_WINDOW_ADDR_SIZE_C,
-            SYNTH_MODE_G       => "xpm",
-            MEMORY_TYPE_G      => "block",
+            TPD_G               => TPD_G,
+            SERVER_G            => true,
+            CLK_FREQUENCY_G     => AXIL_CLK_FREQ_C,
+            TIMEOUT_UNIT_G      => TIMEOUT_C,
+            APP_ILEAVE_EN_G     => true,  -- true = AxiStreamPacketizer2
+            APP_STREAMS_G       => 1,
+            SEGMENT_ADDR_SIZE_G => bitSize(1024/8),
+            WINDOW_ADDR_SIZE_G  => 3,
+            SYNTH_MODE_G        => "xpm",
+            MEMORY_TYPE_G       => "block",
             -- AXIS Configurations
-            APP_AXIS_CONFIG_G  => SRP_AXIS_CONFIG_C,
-            TSP_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            APP_AXIS_CONFIG_G   => SRP_AXIS_CONFIG_C,
+            TSP_AXIS_CONFIG_G   => EMAC_AXIS_CONFIG_C,
             -- Window parameters of receiver module
-            MAX_NUM_OUTS_SEG_G => (2**SRP_WINDOW_ADDR_SIZE_C),
+            MAX_NUM_OUTS_SEG_G  => (2**3),
+            MAX_SEG_SIZE_G      => 1024,
             -- Counters
-            MAX_RETRANS_CNT_G  => (2**SRP_WINDOW_ADDR_SIZE_C),
-            MAX_CUM_ACK_CNT_G  => SRP_WINDOW_ADDR_SIZE_C)
+            MAX_RETRANS_CNT_G   => (2**3),
+            MAX_CUM_ACK_CNT_G   => 3)
          port map (
             clk_i                => axilClk,
             rst_i                => axilRst,
@@ -315,7 +319,6 @@ begin
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => true,
             GEN_SYNC_FIFO_G     => true,
-            TX_VALID_THOLD_G    => 256,
             AXI_STREAM_CONFIG_G => SRP_AXIS_CONFIG_C(0))
          port map (
             -- AXIS Slave Interface (sAxisClk domain)
@@ -349,20 +352,20 @@ begin
                APP_ILEAVE_EN_G     => true,  -- true = AxiStreamPacketizer2
                APP_STREAMS_G       => 1,
                SEGMENT_ADDR_SIZE_G => bitSize(MAX_SEG_SIZE_C/8),
-               WINDOW_ADDR_SIZE_G  => DATA_WINDOW_ADDR_SIZE_C,
+               WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_C,
                BYP_TX_BUFFER_G     => not(ETH_CONFIG_G.enSrvDataTx),
                BYP_RX_BUFFER_G     => not(ETH_CONFIG_G.enSrvDataRx),
-               SYNTH_MODE_G        => "xpm",
-               MEMORY_TYPE_G       => "ultra",
+               SYNTH_MODE_G        => SYNTH_MODE_C,
+               MEMORY_TYPE_G       => MEMORY_TYPE_C,
                -- AXIS Configurations
                APP_AXIS_CONFIG_G   => DATA_AXIS_CONFIG_C,
                TSP_AXIS_CONFIG_G   => EMAC_AXIS_CONFIG_C,
                -- Window parameters of receiver module
-               MAX_NUM_OUTS_SEG_G  => (2**DATA_WINDOW_ADDR_SIZE_C),
+               MAX_NUM_OUTS_SEG_G  => (2**WINDOW_ADDR_SIZE_C),
                MAX_SEG_SIZE_G      => MAX_SEG_SIZE_C,
                -- Counters
-               MAX_RETRANS_CNT_G   => (2**DATA_WINDOW_ADDR_SIZE_C),
-               MAX_CUM_ACK_CNT_G   => DATA_WINDOW_ADDR_SIZE_C)
+               MAX_RETRANS_CNT_G   => (2**WINDOW_ADDR_SIZE_C),
+               MAX_CUM_ACK_CNT_G   => WINDOW_ADDR_SIZE_C)
             port map (
                clk_i                => axilClk,
                rst_i                => axilRst,
@@ -402,20 +405,20 @@ begin
                APP_ILEAVE_EN_G     => true,   -- true = AxiStreamPacketizer2
                APP_STREAMS_G       => 1,
                SEGMENT_ADDR_SIZE_G => bitSize(MAX_SEG_SIZE_C/8),
-               WINDOW_ADDR_SIZE_G  => DATA_WINDOW_ADDR_SIZE_C,
+               WINDOW_ADDR_SIZE_G  => WINDOW_ADDR_SIZE_C,
                BYP_TX_BUFFER_G     => not(ETH_CONFIG_G.enCltDataTx),
                BYP_RX_BUFFER_G     => not(ETH_CONFIG_G.enCltDataRx),
-               SYNTH_MODE_G        => "xpm",
-               MEMORY_TYPE_G       => "ultra",
+               SYNTH_MODE_G        => SYNTH_MODE_C,
+               MEMORY_TYPE_G       => MEMORY_TYPE_C,
                -- AXIS Configurations
                APP_AXIS_CONFIG_G   => DATA_AXIS_CONFIG_C,
                TSP_AXIS_CONFIG_G   => EMAC_AXIS_CONFIG_C,
                -- Window parameters of receiver module
-               MAX_NUM_OUTS_SEG_G  => (2**DATA_WINDOW_ADDR_SIZE_C),
+               MAX_NUM_OUTS_SEG_G  => (2**WINDOW_ADDR_SIZE_C),
                MAX_SEG_SIZE_G      => MAX_SEG_SIZE_C,
                -- Counters
-               MAX_RETRANS_CNT_G   => (2**DATA_WINDOW_ADDR_SIZE_C),
-               MAX_CUM_ACK_CNT_G   => DATA_WINDOW_ADDR_SIZE_C)
+               MAX_RETRANS_CNT_G   => (2**WINDOW_ADDR_SIZE_C),
+               MAX_CUM_ACK_CNT_G   => WINDOW_ADDR_SIZE_C)
             port map (
                clk_i                => axilClk,
                rst_i                => axilRst,

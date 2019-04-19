@@ -55,7 +55,6 @@ package AtlasAtcaLinkAggPkg is
       numCltData  : natural range 0 to 8;  -- sets the number of client data RSSI channels
       enCltDataTx : boolean;  -- Option to enable TX (disable saves resources)
       enCltDataRx : boolean;  -- Option to enable RX (disable saves resources)      
-      enDataJumbo : boolean;  -- Enable Jumbo frames support for the streaming data path
    end record;
    constant ETH_CONFIG_INIT_C : EthConfigType := (
       enable      => true,
@@ -63,7 +62,6 @@ package AtlasAtcaLinkAggPkg is
       enXvc       => false,
       enSrp       => true,
       fabConfig   => ETH_1G_1LANE,
-      enDataJumbo => false,
       -- Streaming Data Server Configurations
       numSrvData  => 1, --- debuging!!!!!!!!!!!!!!!!!!!!
       -- numSrvData  => 0,
@@ -80,7 +78,6 @@ package AtlasAtcaLinkAggPkg is
       enXvc       => true,
       enSrp       => ETH_CONFIG_INIT_C.enSrp,
       fabConfig   => ETH_CONFIG_INIT_C.fabConfig,
-      enDataJumbo => ETH_CONFIG_INIT_C.enDataJumbo,
       -- Streaming Data Server Configurations
       numSrvData  => ETH_CONFIG_INIT_C.numSrvData,
       enSrvDataTx => ETH_CONFIG_INIT_C.enSrvDataTx,
@@ -95,7 +92,6 @@ package AtlasAtcaLinkAggPkg is
       enXvc       => ETH_CONFIG_INIT_C.enXvc,
       enSrp       => ETH_CONFIG_INIT_C.enSrp,
       fabConfig   => ETH_CONFIG_INIT_C.fabConfig,
-      enDataJumbo => ETH_CONFIG_INIT_C.enDataJumbo,
       -- Streaming Data Server Configurations
       numSrvData  => ETH_CONFIG_INIT_C.numSrvData,
       enSrvDataTx => ETH_CONFIG_INIT_C.enSrvDataTx,
