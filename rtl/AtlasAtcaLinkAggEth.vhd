@@ -178,10 +178,9 @@ begin
    for i in 1 downto 0 generate
 
       EN_ETH : if ETH_CONFIG_G(i+4).enable generate
-         U_Eth : entity work.Sgmii88E1111LvdsUltraScale
+         U_Eth : entity work.AtlasAtcaLinkAggEthLvds
             generic map (
-               TPD_G             => TPD_G,
-               CLKOUT1_PHASE_G   => 180.0,
+               TPD_G             => TPD_G,               
                STABLE_CLK_FREQ_G => AXIL_CLK_FREQ_C)
             port map (
                -- clock and reset

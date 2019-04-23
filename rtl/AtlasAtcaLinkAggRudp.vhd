@@ -107,11 +107,10 @@ architecture mapping of AtlasAtcaLinkAggRudp is
       (UDP_CLT_DATA_IDX_C+7) => 8215);
 
    constant TIMEOUT_C          : real     := 1.0E-3;  -- In units of seconds   
-   -- constant WINDOW_ADDR_SIZE_C : positive := (20-10);  -- 20-bit xpm_memory_sdpram address - log2(8192B/8B/word)
-   constant WINDOW_ADDR_SIZE_C : positive := 4;
-   constant MAX_SEG_SIZE_C     : positive := 8192;    -- Jumbo frame chucking
-   constant SYNTH_MODE_C       : positive := "xpm";
-   constant MEMORY_TYPE_C      : positive := "ultra";
+   constant WINDOW_ADDR_SIZE_C : positive := 6;
+   constant MAX_SEG_SIZE_C     : positive := 1024;    -- Jumbo frame chucking
+   constant SYNTH_MODE_C       : string := "xpm";
+   constant MEMORY_TYPE_C      : string := "ultra";
 
    constant SRP_AXIS_CONFIG_C  : AxiStreamConfigArray(0 downto 0) := (others => ssiAxiStreamConfig(4));
    constant DATA_AXIS_CONFIG_C : AxiStreamConfigArray(0 downto 0) := (others => APP_AXIS_CONFIG_C);

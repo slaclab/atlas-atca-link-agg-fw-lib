@@ -10,16 +10,13 @@
 
 # Jitter Cleaner PLL Ports
 
-set_property -dict { PACKAGE_PIN AG17 IOSTANDARD LVDS } [get_ports { fpgaToPllClkP }]
-set_property -dict { PACKAGE_PIN AG16 IOSTANDARD LVDS } [get_ports { fpgaToPllClkN }]
-
-set_property -dict { PACKAGE_PIN AH18 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { pllToFpgaClkP }]
-set_property -dict { PACKAGE_PIN AH17 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { pllToFpgaClkN }]
+set_property -dict { PACKAGE_PIN AD16 IOSTANDARD LVDS } [get_ports { fpgaToPllClkP }]
+set_property -dict { PACKAGE_PIN AD15 IOSTANDARD LVDS } [get_ports { fpgaToPllClkN }]
 
 # Front Panel Clock/LED/TTL Ports
 
-set_property -dict { PACKAGE_PIN AK17 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100  } [get_ports { smaClkP }]
-set_property -dict { PACKAGE_PIN AK16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100  } [get_ports { smaClkN }]
+set_property -dict { PACKAGE_PIN AD6 } [get_ports { smaClkP }]
+set_property -dict { PACKAGE_PIN AD5 } [get_ports { smaClkN }]
 
 set_property -dict { PACKAGE_PIN AL10 IOSTANDARD LVCMOS33 } [get_ports { ledRedL[0]   }]
 set_property -dict { PACKAGE_PIN AM10 IOSTANDARD LVCMOS33 } [get_ports { ledBlueL[0]  }]

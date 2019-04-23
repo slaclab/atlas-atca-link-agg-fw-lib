@@ -39,40 +39,6 @@ create_generated_clock -name eth62Clk  [get_pins {U_Core/U_ClkRst/U_eth62Clk/O}]
 set_clock_groups -asynchronous -group [get_clocks {axilClk}] -group [get_clocks {eth125Clk}]
 set_clock_groups -asynchronous -group [get_clocks {axilClk}] -group [get_clocks {eth62Clk}]
 
-#########################################################
-# Front Panel at 10/100/1000 & BASE ETH[1] at 10/100/1000
-#########################################################
-
-create_generated_clock -name baseEthClk625 [get_pins {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/U_PLL/CLKOUT0}] 
-create_generated_clock -name baseEthClk312 [get_pins {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/U_PLL/CLKOUT1}] 
-create_generated_clock -name baseEthClk125 [get_pins {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/U_sysClk125/O}]
-
-create_generated_clock -name fpEthClk625 [get_pins {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/U_PLL/CLKOUT0}] 
-create_generated_clock -name fpEthClk312 [get_pins {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/U_PLL/CLKOUT1}] 
-create_generated_clock -name fpEthClk125 [get_pins {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/U_sysClk125/O}]
-
-set_clock_groups -asynchronous -group [get_clocks -of_objects [get_pins {U_Core/U_Eth/GEN_SGMII[*].EN_ETH.U_Eth/U_1GigE/U_Bufg_sgmiiClk/O}]] -group [get_clocks -of_objects [get_pins {U_Core/U_Eth/GEN_SGMII[*].EN_ETH.U_Eth/U_1GigE/U_PLL/CLKOUT1}]]
-
-set_clock_groups -asynchronous -group [get_clocks {baseEthClk312}] -group [get_clocks {baseEthClk125}]
-set_clock_groups -asynchronous -group [get_clocks {fpEthClk312}]   -group [get_clocks {fpEthClk125}]
-
-set_property CLOCK_DELAY_GROUP BASE_ETH_CLK_GRP [get_nets {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/sysClk312}] [get_nets {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/sysClk625}]
-set_property CLOCK_DELAY_GROUP FP_ETH_CLK_GRP   [get_nets {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/sysClk312}] [get_nets {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/sysClk625}]
-
-create_pblock SGMII_ETH_BLK
-add_cells_to_pblock [get_pblocks SGMII_ETH_BLK] [get_cells {U_Core/U_Eth/GEN_SGMII[*].EN_ETH/U_Eth/U_1GigE}]
-resize_pblock       [get_pblocks SGMII_ETH_BLK] -add {CLOCKREGION_X2Y0:CLOCKREGION_X2Y0}
-
-set_property LOC PLL_X0Y0        [get_cells {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/U_PLL}]
-set_property LOC BUFGCE_X0Y13    [get_cells {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/U_sysClk625}]
-set_property LOC BUFGCE_X0Y12    [get_cells {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/U_sysClk312}]
-set_property LOC BUFGCE_DIV_X0Y3 [get_cells {U_Core/U_Eth/GEN_SGMII[0].EN_ETH.U_Eth/U_1GigE/U_sysClk125}]
-
-set_property LOC PLL_X0Y1        [get_cells {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/U_PLL}]
-set_property LOC BUFGCE_X0Y20    [get_cells {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/U_sysClk625}]
-set_property LOC BUFGCE_X0Y14    [get_cells {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/U_sysClk312}]
-set_property LOC BUFGCE_DIV_X0Y2 [get_cells {U_Core/U_Eth/GEN_SGMII[1].EN_ETH.U_Eth/U_1GigE/U_sysClk125}]
-
 ################################################
 # FABRIC ETH[1:4] at 1GbE x 1 Lane (1000BASE-KX)
 ################################################
