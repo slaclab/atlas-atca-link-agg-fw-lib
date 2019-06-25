@@ -62,6 +62,7 @@ architecture mapping of AtlasAtcaLinkAggSysMon is
          ip2intc_irpt  : out std_logic;
          vp            : in  std_logic;
          vn            : in  std_logic;
+         ot_out        : out std_logic;
          channel_out   : out std_logic_vector(5 downto 0);
          eoc_out       : out std_logic;
          alarm_out     : out std_logic;
@@ -99,6 +100,7 @@ begin
          ip2intc_irpt  => open,
          vp            => vPIn,
          vn            => vNIn,
+         ot_out        => open,
          channel_out   => open,
          eoc_out       => open,
          alarm_out     => open,

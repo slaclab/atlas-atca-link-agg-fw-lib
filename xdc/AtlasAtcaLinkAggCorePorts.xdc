@@ -21,6 +21,8 @@ set_property SEVERITY {Warning} [get_drc_checks {UCIO-1}]
 set_property -dict { PACKAGE_PIN V12 IOSTANDARD ANALOG } [get_ports { vPIn }]
 set_property -dict { PACKAGE_PIN W11 IOSTANDARD ANALOG } [get_ports { vNIn }]
 
+set_property BITSTREAM.CONFIG.OVERTEMPSHUTDOWN ENABLE [current_design]
+
 # Jitter Cleaner PLL Ports
 
 set_property -dict { PACKAGE_PIN AE18 IOSTANDARD LVCMOS18 } [get_ports { pllSpiOeL   }];
