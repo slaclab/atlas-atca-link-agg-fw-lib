@@ -57,6 +57,9 @@ entity AtlasAtcaLinkAggCore is
       ref156Clk       : out   sl;
       ref156Rst       : out   sl;
       ipmiBsi         : out   BsiBusType;
+      ledRedL         : out   slv(1 downto 0);
+      ledBlueL        : out   slv(1 downto 0);
+      ledGreenL       : out   slv(1 downto 0);
       -------------------   
       --  Top Level Ports
       -------------------   
@@ -79,7 +82,6 @@ entity AtlasAtcaLinkAggCore is
       qsfpScl         : inout slv(1 downto 0);
       qsfpSda         : inout slv(1 downto 0);
       -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
-      fpEthLed        : out   slv(3 downto 0);
       ethRefClkP      : in    slv(1 downto 0);
       ethRefClkN      : in    slv(1 downto 0);
       ethTxP          : out   slv(1 downto 0);
@@ -111,7 +113,7 @@ architecture mapping of AtlasAtcaLinkAggCore is
       return slv is
       variable retVar : slv(15 downto 0);
    begin
-      retVar := x"0000";      
+      retVar := x"0000";
       for i in NUM_ETH_C-1 downto 0 loop
          if (ETH_CONFIG_G(i).enable) and (ETH_CONFIG_G(i).enSrp) then
             retVar(i) := '1';
@@ -120,9 +122,9 @@ architecture mapping of AtlasAtcaLinkAggCore is
       return retVar;
    end function;
    constant M_AXIL_CONNECT_C : slv(15 downto 0) := genRouteTable;
-   
-   constant NUM_AXIL_MASTERS_C    : positive := 4;
-   
+
+   constant NUM_AXIL_MASTERS_C : positive := 4;
+
    constant BASE_INDEX_C    : natural := 0;
    constant PLL_SPI_INDEX_C : natural := 1;
    constant ETH_INDEX_C     : natural := 2;
@@ -145,7 +147,7 @@ architecture mapping of AtlasAtcaLinkAggCore is
          baseAddr     => APP_AXIL_BASE_ADDR_C,
          addrBits     => 31,
          connectivity => M_AXIL_CONNECT_C));
-         
+
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C);
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
@@ -282,7 +284,6 @@ begin
          --  Top Level Ports
          -------------------      
          -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
-         fpEthLed          => fpEthLed,
          ethRefClkP        => ethRefClkP,
          ethRefClkN        => ethRefClkN,
          ethTxP            => ethTxP,
@@ -342,6 +343,9 @@ begin
          localIp         => localIp,
          ethLinkUp       => ethLinkUp,
          bsiBus          => bsiBus,
+         ledRedL         => ledRedL,
+         ledBlueL        => ledBlueL,
+         ledGreenL       => ledGreenL,
          -------------------   
          --  Top Level Ports
          -------------------   

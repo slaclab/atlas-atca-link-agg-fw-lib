@@ -63,8 +63,8 @@ package AtlasAtcaLinkAggPkg is
       enSrp       => true,
       fabConfig   => ETH_1G_1LANE,
       -- Streaming Data Server Configurations
-      numSrvData  => 1, --- debuging!!!!!!!!!!!!!!!!!!!!
-      -- numSrvData  => 0,
+      -- numSrvData  => 1, --- debuging!!!!!!!!!!!!!!!!!!!!
+      numSrvData  => 0,
       enSrvDataTx => false,
       enSrvDataRx => false,
       -- Streaming Data Client Configurations

@@ -45,6 +45,9 @@ entity AtlasAtcaLinkAggReg is
       localIp         : out   Slv32Array(NUM_ETH_C-1 downto 0);
       ethLinkUp       : in    slv(NUM_ETH_C-1 downto 0);
       bsiBus          : out   BsiBusType;
+      ledRedL         : out   slv(1 downto 0);
+      ledBlueL        : out   slv(1 downto 0);
+      ledGreenL       : out   slv(1 downto 0);
       -------------------   
       --  Top Level Ports
       -------------------   
@@ -188,6 +191,9 @@ begin
          bootReq         => bootReq,
          bootAddr        => bootAddr,
          upTimeCnt       => upTimeCnt,
+         ledRedL         => ledRedL,
+         ledBlueL        => ledBlueL,
+         ledGreenL       => ledGreenL,
          -- I2C Ports
          scl             => ipmcScl,
          sda             => ipmcSda,

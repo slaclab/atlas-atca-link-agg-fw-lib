@@ -91,11 +91,6 @@ set_property -dict { PACKAGE_PIN AN16 IOSTANDARD LVCMOS18 } [get_ports { ethMdc[
 set_property -dict { PACKAGE_PIN AN19 IOSTANDARD LVCMOS18 } [get_ports { ethRstL[1] }];
 set_property -dict { PACKAGE_PIN AP18 IOSTANDARD LVCMOS18 } [get_ports { ethIrqL[1] }];
 
-set_property -dict { PACKAGE_PIN AG12 IOSTANDARD LVCMOS33 } [get_ports { fpEthLed[0]  }]
-set_property -dict { PACKAGE_PIN AH12 IOSTANDARD LVCMOS33 } [get_ports { fpEthLed[1]  }]
-set_property -dict { PACKAGE_PIN AD11 IOSTANDARD LVCMOS33 } [get_ports { fpEthLed[2]  }]
-set_property -dict { PACKAGE_PIN AE11 IOSTANDARD LVCMOS33 } [get_ports { fpEthLed[3]  }]
-
 # ATCA Backplane: FABRIC ETH[1:4]
 
 set_property PACKAGE_PIN AB6 [get_ports { fabEthRefClkP }]

@@ -73,7 +73,6 @@ entity AtlasAtcaLinkAggEth is
       --  Top Level Ports
       -------------------   
       -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
-      fpEthLed          : out   slv(3 downto 0)                                 := "0000";
       ethRefClkP        : in    slv(1 downto 0);
       ethRefClkN        : in    slv(1 downto 0);
       ethTxP            : out   slv(1 downto 0);

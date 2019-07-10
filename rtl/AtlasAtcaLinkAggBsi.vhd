@@ -2,7 +2,7 @@
 -- File       : AtlasAtcaLinkAggBsi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -- Created    : 2015-08-03
--- Last update: 2019-04-03
+-- Last update: 2019-07-10
 -------------------------------------------------------------------------------
 -- Description: BootStrap Interface (BSI) to the IPMI's controller (IPMC) 
 -------------------------------------------------------------------------------
@@ -40,6 +40,9 @@ entity AtlasAtcaLinkAggBsi is
       bootReq         : out   sl;
       bootAddr        : out   slv(31 downto 0);
       upTimeCnt       : in    slv(31 downto 0);
+      ledRedL         : out   slv(1 downto 0);
+      ledBlueL        : out   slv(1 downto 0);
+      ledGreenL       : out   slv(1 downto 0);
       -- I2C Ports
       scl             : inout sl;
       sda             : inout sl;
@@ -79,6 +82,9 @@ architecture rtl of AtlasAtcaLinkAggBsi is
    signal stringRom : RomType := makeStringRom;
 
    type RegType is record
+      ledRed         : slv(1 downto 0);
+      ledBlue        : slv(1 downto 0);
+      ledGreen       : slv(1 downto 0);
       ethUpTimeCnt   : Slv32Array(NUM_ETH_C-1 downto 0);
       timer          : TimerArray(NUM_ETH_C-1 downto 0);
       cnt            : slv(3 downto 0);
@@ -96,6 +102,9 @@ architecture rtl of AtlasAtcaLinkAggBsi is
    end record;
 
    constant REG_INIT_C : RegType := (
+      ledRed         => "00",
+      ledBlue        => "00",
+      ledGreen       => "00",
       ethUpTimeCnt   => (others => (others => '0')),
       timer          => (others => 0),
       cnt            => x"0",
@@ -412,7 +421,7 @@ begin
 
       -- Map the read registers
       for i in NUM_ETH_C-1 downto 0 loop
-         axiSlaveRegisterR(regCon, toSlv(8*i, 8), 0, r.macAddress(i));
+         axiSlaveRegisterR(regCon, toSlv(8*i, 8), 0, endianSwap(r.macAddress(i)));
          axiSlaveRegisterR(regCon, toSlv(4*i+64, 8), 0, r.ethUpTimeCnt(i));
       end loop;
       axiSlaveRegisterR(regCon, x"80", 0, r.crateId);
@@ -421,6 +430,10 @@ begin
       axiSlaveRegisterR(regCon, x"8C", 0, BSI_MINOR_VERSION_C);
       axiSlaveRegisterR(regCon, x"90", 8, BSI_MAJOR_VERSION_C);
       axiSlaveRegisterR(regCon, x"90", 16, ethLinkUp);
+
+      axiSlaveRegister (regCon, x"94", 0, v.ledRed);
+      axiSlaveRegister (regCon, x"94", 8, v.ledBlue);
+      axiSlaveRegister (regCon, x"94", 16, v.ledGreen);
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -470,6 +483,9 @@ begin
       for i in NUM_ETH_C-1 downto 0 loop
          bsiBus.macAddress(i) <= endianSwap(r.macAddress(i));
       end loop;
+      ledRedL   <= not(r.ledRed);
+      ledBlueL  <= not(r.ledBlue);
+      ledGreenL <= not(r.ledGreen);
 
    end process comb;
 

@@ -73,7 +73,7 @@ end AtlasAtcaLinkAggRudp;
 
 architecture mapping of AtlasAtcaLinkAggRudp is
 
-   constant SERVER_SIZE_C : positive := (2+ETH_CONFIG_INIT_C.numSrvData);
+   constant SERVER_SIZE_C : positive := (2+ETH_CONFIG_G.numSrvData);
 
    constant UDP_SRV_XVC_IDX_C  : natural := 0;
    constant UDP_SRV_SRP_IDX_C  : natural := 1;
@@ -91,8 +91,8 @@ architecture mapping of AtlasAtcaLinkAggRudp is
       (UDP_SRV_DATA_IDX_C+6) => 8206,
       (UDP_SRV_DATA_IDX_C+7) => 8207);
 
-   constant CLIENT_EN_C   : boolean  := ite(ETH_CONFIG_INIT_C.numCltData > 0, true, false);
-   constant CLIENT_SIZE_C : positive := ite(CLIENT_EN_C, ETH_CONFIG_INIT_C.numCltData, 1);
+   constant CLIENT_EN_C   : boolean  := ite(ETH_CONFIG_G.numCltData > 0, true, false);
+   constant CLIENT_SIZE_C : positive := ite(CLIENT_EN_C, ETH_CONFIG_G.numCltData, 1);
 
    constant UDP_CLT_DATA_IDX_C : natural := 0;
 
@@ -249,13 +249,13 @@ begin
    -- Xilinx XVC
    -------------
    GEN_XVC : if (ETH_CONFIG_G.enXvc) generate
-      U_Debug : entity work.AtlasAtcaLinkAggXvcDebug
+      U_Debug : entity work.UdpDebugBridgeWrapper
          generic map (
             TPD_G => TPD_G)
          port map (
             -- Clock and Reset
-            axilClk        => axilClk,
-            axilRst        => axilRst,
+            clk        => axilClk,
+            rst        => axilRst,
             -- UDP XVC Interface
             obServerMaster => obServerMasters(UDP_SRV_XVC_IDX_C),
             obServerSlave  => obServerSlaves(UDP_SRV_XVC_IDX_C),
