@@ -104,14 +104,14 @@ package AtlasAtcaLinkAggPkg is
    type EthConfigArray is array (NUM_ETH_C-1 downto 0) of EthConfigType;
 
    -----------------------------------------------------------------------------------------
-   -- ETH_CONFIG_G[3:0] = FAB_ETH[4:1], ETH_CONFIG_G[4] = BASE_ETH, ETH_CONFIG_G[5] = FP_ETH
+   -- ETH_CONFIG_G[3:0] = FAB_ETH[4:1], ETH_CONFIG_G[5:4] = FP_ETH[1:0]
    -----------------------------------------------------------------------------------------
-   constant ETH_FAB1_IDX_C  : natural := 0;
-   constant ETH_FAB2_IDX_C  : natural := 1;
-   constant ETH_FAB3_IDX_C  : natural := 2;
-   constant ETH_FAB4_IDX_C  : natural := 3;
-   constant ETH_BASE1_IDX_C : natural := 4;
-   constant ETH_FP_IDX_C    : natural := 5;
+   constant ETH_FAB1_IDX_C : natural := 0;
+   constant ETH_FAB2_IDX_C : natural := 1;
+   constant ETH_FAB3_IDX_C : natural := 2;
+   constant ETH_FAB4_IDX_C : natural := 3;
+   constant ETH_FP0_IDX_C  : natural := 4;
+   constant ETH_FP1_IDX_C  : natural := 5;
 
    ---------------------------------------------------
    -- BSI: Configurations, Constants and Records Types

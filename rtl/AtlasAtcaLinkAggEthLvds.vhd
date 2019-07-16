@@ -2,7 +2,7 @@
 -- File       : AtlasAtcaLinkAggEthLvds.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for Marvell 88E1111 PHY + LVDS SGMII
+-- Description: Wrapper for LVDS SGMII
 -------------------------------------------------------------------------------
 -- This file is part of 'ATLAS ATCA LINK AGG DEV'.
 -- It is subject to the license terms in the LICENSE.txt file found in the 
@@ -15,48 +15,42 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 use work.StdRtlPkg.all;
 use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
 use work.EthMacPkg.all;
 use work.GigEthPkg.all;
 
+library unisim;
+use unisim.vcomponents.all;
+
 entity AtlasAtcaLinkAggEthLvds is
    generic (
-      TPD_G             : time                  := 1 ns;
-      STABLE_CLK_FREQ_G : real                  := 156.25E+6;
-      PHY_G             : natural range 0 to 31 := 7;
-      PAUSE_EN_G        : boolean               := true;
-      PAUSE_512BITS_G   : positive              := 8;
-      AXIS_CONFIG_G     : AxiStreamConfigType   := EMAC_AXIS_CONFIG_C);
+      TPD_G           : time                     := 1 ns;
+      SGMII_EN_G      : BooleanArray(1 downto 0) := (others => true);
+      PAUSE_EN_G      : boolean                  := false;
+      PAUSE_512BITS_G : positive                 := 8;
+      AXIS_CONFIG_G   : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);
    port (
-      -- clock and reset
-      extRst      : in    sl;                -- active high
-      stableClk   : in    sl;                -- Stable clock reference
       -- Local Configurations/status
-      localMac    : in    slv(47 downto 0);  --  big-Endian configuration   
-      linkUp      : out   sl;
+      localMac     : in  Slv48Array(1 downto 0);  --  big-Endian configuration   
+      linkUp       : out slv(1 downto 0)                  := "00";
       -- Interface to Ethernet Media Access Controller (MAC)
-      macClk      : in    sl;
-      macRst      : in    sl;
-      obMacMaster : out   AxiStreamMasterType;
-      obMacSlave  : in    AxiStreamSlaveType;
-      ibMacMaster : in    AxiStreamMasterType;
-      ibMacSlave  : out   AxiStreamSlaveType;
-      -- ETH external PHY Ports
-      phyClkP     : in    sl;                -- 625.0 MHz
-      phyClkN     : in    sl;
-      phyMdc      : out   sl;
-      phyMdio     : inout sl;
-      phyRstN     : out   sl;                -- active low
-      phyIrqN     : in    sl;                -- active low      
-      -- LVDS SGMII Ports
-      sgmiiRxP    : in    sl;
-      sgmiiRxN    : in    sl;
-      sgmiiTxP    : out   sl;
-      sgmiiTxN    : out   sl);
+      macClk       : in  sl;
+      macRst       : in  sl;
+      obMacMasters : out AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      obMacSlaves  : in  AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+      ibMacMasters : in  AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      ibMacSlaves  : out AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+      -- Front Panel: ETH[1:0] SGMII Ports
+      sgmiiClkP    : in  sl;            -- 625.0 MHz
+      sgmiiClkN    : in  sl;
+      sgmiiRxP     : in  slv(1 downto 0);
+      sgmiiRxN     : in  slv(1 downto 0);
+      sgmiiTxP     : out slv(1 downto 0);
+      sgmiiTxN     : out slv(1 downto 0));
 end entity AtlasAtcaLinkAggEthLvds;
 
 architecture mapping of AtlasAtcaLinkAggEthLvds is
@@ -65,7 +59,10 @@ architecture mapping of AtlasAtcaLinkAggEthLvds is
       port (
          sgmii_clk_r_0          : out std_logic;
          sgmii_clk_f_0          : out std_logic;
+         sgmii_clk_r_1          : out std_logic;
+         sgmii_clk_f_1          : out std_logic;
          sgmii_clk_en_0         : out std_logic;
+         sgmii_clk_en_1         : out std_logic;
          clk125_out             : out std_logic;
          clk312_out             : out std_logic;
          rst_125_out            : out std_logic;
@@ -73,6 +70,8 @@ architecture mapping of AtlasAtcaLinkAggEthLvds is
          refclk625_p            : in  std_logic;
          speed_is_10_100_0      : in  std_logic;
          speed_is_100_0         : in  std_logic;
+         speed_is_10_100_1      : in  std_logic;
+         speed_is_100_1         : in  std_logic;
          reset                  : in  std_logic;
          txn_0                  : out std_logic;
          rxn_0                  : in  std_logic;
@@ -86,8 +85,22 @@ architecture mapping of AtlasAtcaLinkAggEthLvds is
          signal_detect_0        : in  std_logic;
          gmii_tx_en_0           : in  std_logic;
          gmii_tx_er_0           : in  std_logic;
+         txn_1                  : out std_logic;
+         rxn_1                  : in  std_logic;
+         gmii_txd_1             : in  std_logic_vector(7 downto 0);
+         gmii_rxd_1             : out std_logic_vector(7 downto 0);
+         txp_1                  : out std_logic;
+         gmii_rx_dv_1           : out std_logic;
+         gmii_rx_er_1           : out std_logic;
+         gmii_isolate_1         : out std_logic;
+         rxp_1                  : in  std_logic;
+         signal_detect_1        : in  std_logic;
+         gmii_tx_en_1           : in  std_logic;
+         gmii_tx_er_1           : in  std_logic;
          configuration_vector_0 : in  std_logic_vector(4 downto 0);
+         configuration_vector_1 : in  std_logic_vector(4 downto 0);
          status_vector_0        : out std_logic_vector(15 downto 0);
+         status_vector_1        : out std_logic_vector(15 downto 0);
          tx_dly_rdy_1           : in  std_logic;
          rx_dly_rdy_1           : in  std_logic;
          tx_vtc_rdy_1           : in  std_logic;
@@ -137,264 +150,194 @@ architecture mapping of AtlasAtcaLinkAggEthLvds is
          );
    end component;
 
-   signal phyClock : sl;
-   signal phyReset : sl;
-
-   signal phyInitRst : sl;
-   signal phyIrq     : sl;
-   signal phyMdi     : sl;
-   signal phyMdo     : sl := '1';
-
-   signal extPhyRstN  : sl := '0';
-   signal extPhyReady : sl := '0';
-
-   signal sp10_100 : sl := '0';
-   signal sp100    : sl := '0';
-   signal initDone : sl := '0';
-
-   signal config : GigEthConfigType;
-   signal status : GigEthStatusType;
-
    signal sysClk125 : sl;
    signal sysRst125 : sl;
-   signal ethClkEn  : sl;
-   signal phyReady  : sl;
-   
-   signal gmiiTxClk : sl;
-   signal gmiiTxd   : slv(7 downto 0);
-   signal gmiiTxEn  : sl;
-   signal gmiiTxEr  : sl;
+   signal ethClkEn  : slv(1 downto 0) := (others => '1');
+   signal phyReady  : slv(1 downto 0) := (others => '0');
 
-   signal gmiiRxClk : sl;
-   signal gmiiRxd   : slv(7 downto 0);
-   signal gmiiRxDv  : sl;
-   signal gmiiRxEr  : sl;   
+   signal gmiiTxd  : Slv8Array(1 downto 0) := (others => x"BC");
+   signal gmiiTxEn : slv(1 downto 0)       := (others => '0');
+   signal gmiiTxEr : slv(1 downto 0)       := (others => '0');
+
+   signal gmiiRxd  : Slv8Array(1 downto 0) := (others => x"BC");
+   signal gmiiRxDv : slv(1 downto 0)       := (others => '0');
+   signal gmiiRxEr : slv(1 downto 0)       := (others => '0');
+
+   type GigEthConfigArray is array (natural range <>) of GigEthConfigType;
+   type GigEthStatusArray is array (natural range <>) of GigEthStatusType;
+
+   signal config : GigEthConfigArray(1 downto 0) := (others => GIG_ETH_CONFIG_INIT_C);
+   signal status : GigEthStatusArray(1 downto 0);
 
 begin
 
-   -- Tri-state driver for phyMdio
-   phyMdio <= 'Z' when phyMdo = '1' else '0';
+   EN_ETH : if SGMII_EN_G(0) or SGMII_EN_G(1) generate
 
-   -- Reset line of the external phy
-   phyRstN <= extPhyRstN;
+      ---------------------
+      -- LVDS SGMII ETH PHY
+      ---------------------
+      U_LVDS_PHY : LvdsSgmiiEthPhy
+         port map (
+            sgmii_clk_r_0          => open,
+            sgmii_clk_f_0          => open,
+            sgmii_clk_r_1          => open,
+            sgmii_clk_f_1          => open,
+            sgmii_clk_en_0         => ethClkEn(0),
+            sgmii_clk_en_1         => ethClkEn(1),
+            clk125_out             => sysClk125,
+            clk312_out             => open,
+            rst_125_out            => sysRst125,
+            refclk625_n            => sgmiiClkN,
+            refclk625_p            => sgmiiClkP,
+            speed_is_10_100_0      => '0',
+            speed_is_100_0         => '0',
+            speed_is_10_100_1      => '0',
+            speed_is_100_1         => '0',
+            reset                  => macRst,
+            txn_0                  => sgmiiTxN(0),
+            rxn_0                  => sgmiiRxN(0),
+            gmii_txd_0             => gmiiTxd(0),
+            gmii_rxd_0             => gmiiRxd(0),
+            txp_0                  => sgmiiTxP(0),
+            gmii_rx_dv_0           => gmiiRxDv(0),
+            gmii_rx_er_0           => gmiiRxEr(0),
+            gmii_isolate_0         => open,
+            rxp_0                  => sgmiiRxP(0),
+            signal_detect_0        => '1',
+            gmii_tx_en_0           => gmiiTxEn(0),
+            gmii_tx_er_0           => gmiiTxEr(0),
+            txn_1                  => sgmiiTxN(1),
+            rxn_1                  => sgmiiRxN(1),
+            gmii_txd_1             => gmiiTxd(1),
+            gmii_rxd_1             => gmiiRxd(1),
+            txp_1                  => sgmiiTxP(1),
+            gmii_rx_dv_1           => gmiiRxDv(1),
+            gmii_rx_er_1           => gmiiRxEr(1),
+            gmii_isolate_1         => open,
+            rxp_1                  => sgmiiRxP(1),
+            signal_detect_1        => '1',
+            gmii_tx_en_1           => gmiiTxEn(1),
+            gmii_tx_er_1           => gmiiTxEr(1),
+            configuration_vector_0 => config(0).coreConfig,
+            configuration_vector_1 => config(1).coreConfig,
+            status_vector_0        => status(0).coreStatus,
+            status_vector_1        => status(1).coreStatus,
+            tx_dly_rdy_1           => '1',
+            rx_dly_rdy_1           => '1',
+            tx_vtc_rdy_1           => '1',
+            rx_vtc_rdy_1           => '1',
+            tx_dly_rdy_2           => '1',
+            rx_dly_rdy_2           => '1',
+            tx_vtc_rdy_2           => '1',
+            rx_vtc_rdy_2           => '1',
+            tx_dly_rdy_3           => '1',
+            rx_dly_rdy_3           => '1',
+            tx_vtc_rdy_3           => '1',
+            rx_vtc_rdy_3           => '1',
+            tx_logic_reset         => open,
+            rx_logic_reset         => open,
+            rx_locked              => open,
+            tx_locked              => open,
+            tx_bsc_rst_out         => open,
+            rx_bsc_rst_out         => open,
+            tx_bs_rst_out          => open,
+            rx_bs_rst_out          => open,
+            tx_rst_dly_out         => open,
+            rx_rst_dly_out         => open,
+            tx_bsc_en_vtc_out      => open,
+            rx_bsc_en_vtc_out      => open,
+            tx_bs_en_vtc_out       => open,
+            rx_bs_en_vtc_out       => open,
+            riu_clk_out            => open,
+            riu_wr_en_out          => open,
+            tx_pll_clk_out         => open,
+            rx_pll_clk_out         => open,
+            tx_rdclk_out           => open,
+            riu_addr_out           => open,
+            riu_wr_data_out        => open,
+            riu_nibble_sel_out     => open,
+            rx_btval_1             => open,
+            rx_btval_2             => open,
+            rx_btval_3             => open,
+            riu_valid_3            => '0',
+            riu_valid_2            => '0',
+            riu_valid_1            => '0',
+            riu_prsnt_1            => '0',
+            riu_prsnt_2            => '0',
+            riu_prsnt_3            => '0',
+            riu_rddata_3           => (others => '0'),
+            riu_rddata_1           => (others => '0'),
+            riu_rddata_2           => (others => '0'));
 
-   --------------------------------------------------------------------------
-   -- We must hold reset for >10ms and then wait >5ms until we may talk
-   -- to it (we actually wait also >10ms) which is indicated by 'extPhyReady'
-   --------------------------------------------------------------------------
-   U_PwrUpRst0 : entity work.PwrUpRst
-      generic map(
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '0',
-         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
-      port map (
-         arst   => extRst,
-         clk    => stableClk,
-         rstOut => extPhyRstN);
+      GEN_VEC :
+      for i in 1 downto 0 generate
 
-   U_PwrUpRst1 : entity work.PwrUpRst
-      generic map(
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '0',
-         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
-      port map (
-         arst   => extPhyRstN,
-         clk    => stableClk,
-         rstOut => extPhyReady);
+         config(i).macConfig.macAddress <= localMac(i);
 
-   ----------------------------------------------------------------------
-   -- The MDIO controller which talks to the external PHY must be held
-   -- in reset until extPhyReady; it works in a different clock domain...
-   ----------------------------------------------------------------------
-   U_PhyInitRstSync : entity work.RstSync
-      generic map (
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk      => phyClock,
-         asyncRst => extPhyReady,
-         syncRst  => phyInitRst);
+         GEN_MAC : if SGMII_EN_G(i) generate
+            --------------------
+            -- Ethernet MAC core
+            --------------------
+            U_MAC : entity work.EthMacTop
+               generic map (
+                  TPD_G           => TPD_G,
+                  PAUSE_EN_G      => PAUSE_EN_G,
+                  PAUSE_512BITS_G => PAUSE_512BITS_G,
+                  PHY_TYPE_G      => "GMII",
+                  PRIM_CONFIG_G   => AXIS_CONFIG_G)
+               port map (
+                  -- Primary Interface
+                  primClk         => macClk,
+                  primRst         => macRst,
+                  ibMacPrimMaster => ibMacMasters(i),
+                  ibMacPrimSlave  => ibMacSlaves(i),
+                  obMacPrimMaster => obMacMasters(i),
+                  obMacPrimSlave  => obMacSlaves(i),
+                  -- Ethernet Interface
+                  ethClkEn        => ethClkEn(i),
+                  ethClk          => sysClk125,
+                  ethRst          => sysRst125,
+                  ethConfig       => config(i).macConfig,
+                  ethStatus       => status(i).macStatus,
+                  phyReady        => status(i).coreStatus(0),
+                  -- GMII PHY Interface
+                  gmiiRxDv        => gmiiRxDv(i),
+                  gmiiRxEr        => gmiiRxEr(i),
+                  gmiiRxd         => gmiiRxd(i),
+                  gmiiTxEn        => gmiiTxEn(i),
+                  gmiiTxEr        => gmiiTxEr(i),
+                  gmiiTxd         => gmiiTxd(i));
+         end generate;
 
-   -----------------------------------------------------------------------
-   -- The SaltCore does not support auto-negotiation on the SGMII link
-   -- (mac<->phy) - however, the Marvell PHY (by default) assumes it does.
-   -- We need to disable auto-negotiation in the PHY on the SGMII side
-   -- and handle link changes (aneg still enabled on copper) flagged
-   -- by the PHY...
-   -----------------------------------------------------------------------
-   U_PhyCtrl : entity work.Sgmii88E1111Mdio
-      generic map (
-         TPD_G => TPD_G,
-         PHY_G => PHY_G,
-         DIV_G => 100)
-      port map (
-         clk             => phyClock,
-         rst             => phyInitRst,
-         initDone        => initDone,
-         speed_is_10_100 => sp10_100,
-         speed_is_100    => sp100,
-         linkIsUp        => linkUp,
-         mdi             => phyMdi,
-         mdc             => phyMdc,
-         mdo             => phyMdo,
-         linkIrq         => phyIrq);
+      end generate GEN_VEC;
 
-   ----------------------------------------------------
-   -- synchronize MDI and IRQ signals into 'clk' domain
-   ----------------------------------------------------
-   U_SyncMdi : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => phyClock,
-         dataIn  => phyMdio,
-         dataOut => phyMdi);
+   end generate;
 
-   U_SyncIrq : entity work.Synchronizer
-      generic map (
-         TPD_G          => TPD_G,
-         OUT_POLARITY_G => '0',
-         INIT_G         => "11")
-      port map (
-         clk     => phyClock,
-         dataIn  => phyIrqN,
-         dataOut => phyIrq);
+   DIS_ETH : if not(SGMII_EN_G(0)) and not(SGMII_EN_G(1)) generate
 
-   --------------------
-   -- Ethernet MAC core
-   --------------------
-   U_MAC : entity work.EthMacTop
-      generic map (
-         TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
-         PHY_TYPE_G      => "GMII",
-         PRIM_CONFIG_G   => AXIS_CONFIG_G)
-      port map (
-         -- Primary Interface
-         primClk         => macClk,
-         primRst         => macRst,
-         ibMacPrimMaster => ibMacMaster,
-         ibMacPrimSlave  => ibMacSlave,
-         obMacPrimMaster => obMacMaster,
-         obMacPrimSlave  => obMacSlave,
-         -- Ethernet Interface
-         ethClkEn        => ethClkEn,
-         ethClk          => sysClk125,
-         ethRst          => sysRst125,
-         ethConfig       => config.macConfig,
-         ethStatus       => status.macStatus,
-         phyReady        => status.phyReady,
-         -- GMII PHY Interface
-         gmiiRxDv        => gmiiRxDv,
-         gmiiRxEr        => gmiiRxEr,
-         gmiiRxd         => gmiiRxd,
-         gmiiTxEn        => gmiiTxEn,
-         gmiiTxEr        => gmiiTxEr,
-         gmiiTxd         => gmiiTxd);
+      U_Clk : IBUFDS
+         port map (
+            I  => sgmiiClkP,
+            IB => sgmiiClkN,
+            O  => open);
 
-   ---------------------
-   -- LVDS SGMII ETH PHY
-   ---------------------
-   U_LVDS_PHY : LvdsSgmiiEthPhy
-      port map (
-         sgmii_clk_r_0          => open,
-         sgmii_clk_f_0          => open,
-         sgmii_clk_en_0         => ethClkEn,
-         clk125_out             => sysClk125,
-         clk312_out             => open,
-         rst_125_out            => sysRst125,
-         refclk625_n            => phyClkN,
-         refclk625_p            => phyClkP,
-         speed_is_10_100_0      => sp10_100,
-         speed_is_100_0         => sp100,
-         reset                  => phyInitRst,
-         txn_0                  => sgmiiTxN,
-         rxn_0                  => sgmiiRxN,
-         gmii_txd_0             => gmiiTxd,
-         gmii_rxd_0             => gmiiRxd,
-         txp_0                  => sgmiiTxP,
-         gmii_rx_dv_0           => gmiiRxDv,
-         gmii_rx_er_0           => gmiiRxEr,
-         gmii_isolate_0         => open,
-         rxp_0                  => sgmiiRxP,
-         signal_detect_0        => '1',
-         gmii_tx_en_0           => gmiiTxEn,
-         gmii_tx_er_0           => gmiiTxEr,
-         configuration_vector_0 => config.coreConfig,
-         status_vector_0        => status.coreStatus,
-         tx_dly_rdy_1           => '1',
-         rx_dly_rdy_1           => '1',
-         tx_vtc_rdy_1           => '1',
-         rx_vtc_rdy_1           => '1',
-         tx_dly_rdy_2           => '1',
-         rx_dly_rdy_2           => '1',
-         tx_vtc_rdy_2           => '1',
-         rx_vtc_rdy_2           => '1',
-         tx_dly_rdy_3           => '1',
-         rx_dly_rdy_3           => '1',
-         tx_vtc_rdy_3           => '1',
-         rx_vtc_rdy_3           => '1',
-         tx_logic_reset         => open,
-         rx_logic_reset         => open,
-         rx_locked              => open,
-         tx_locked              => open,
-         tx_bsc_rst_out         => open,
-         rx_bsc_rst_out         => open,
-         tx_bs_rst_out          => open,
-         rx_bs_rst_out          => open,
-         tx_rst_dly_out         => open,
-         rx_rst_dly_out         => open,
-         tx_bsc_en_vtc_out      => open,
-         rx_bsc_en_vtc_out      => open,
-         tx_bs_en_vtc_out       => open,
-         rx_bs_en_vtc_out       => open,
-         riu_clk_out            => open,
-         riu_wr_en_out          => open,
-         tx_pll_clk_out         => open,
-         rx_pll_clk_out         => open,
-         tx_rdclk_out           => open,
-         riu_addr_out           => open,
-         riu_wr_data_out        => open,
-         riu_nibble_sel_out     => open,
-         rx_btval_1             => open,
-         rx_btval_2             => open,
-         rx_btval_3             => open,
-         riu_valid_3            => '0',
-         riu_valid_2            => '0',
-         riu_valid_1            => '0',
-         riu_prsnt_1            => '0',
-         riu_prsnt_2            => '0',
-         riu_prsnt_3            => '0',
-         riu_rddata_3           => (others => '0'),
-         riu_rddata_1           => (others => '0'),
-         riu_rddata_2           => (others => '0'));
+      GEN_VEC :
+      for i in 1 downto 0 generate
 
-   status.phyReady <= status.coreStatus(0);
-   phyReady        <= status.phyReady;
+         U_Rx : IBUFDS
+            port map (
+               I  => sgmiiRxP(i),
+               IB => sgmiiRxN(i),
+               O  => open);
 
-   --------------------------------
-   -- Configuration/Status Register
-   --------------------------------
-   U_GigEthReg : entity work.GigEthReg
-      generic map (
-         TPD_G        => TPD_G,
-         EN_AXI_REG_G => false)
-      port map (
-         -- Local Configurations
-         localMac       => localMac,
-         -- Clocks and resets
-         clk            => sysClk125,
-         rst            => sysRst125,
-         -- AXI-Lite Register Interface
-         axiReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
-         axiReadSlave   => open,
-         axiWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
-         axiWriteSlave  => open,
-         -- Configuration and Status Interface
-         config         => config,
-         status         => status);
+         U_Tx : OBUFDS
+            port map (
+               I  => '0',
+               O  => sgmiiTxP(i),
+               OB => sgmiiTxN(i));
+
+      end generate GEN_VEC;
+
+   end generate;
 
 end mapping;

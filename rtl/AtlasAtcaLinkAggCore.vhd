@@ -81,17 +81,13 @@ entity AtlasAtcaLinkAggCore is
       sfpSda          : inout slv(3 downto 0);
       qsfpScl         : inout slv(1 downto 0);
       qsfpSda         : inout slv(1 downto 0);
-      -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
-      ethRefClkP      : in    slv(1 downto 0);
-      ethRefClkN      : in    slv(1 downto 0);
-      ethTxP          : out   slv(1 downto 0);
-      ethTxN          : out   slv(1 downto 0);
-      ethRxP          : in    slv(1 downto 0);
-      ethRxN          : in    slv(1 downto 0);
-      ethMdio         : inout slv(1 downto 0);
-      ethMdc          : out   slv(1 downto 0);
-      ethRstL         : out   slv(1 downto 0);
-      ethIrqL         : in    slv(1 downto 0);
+      -- Front Panel: ETH[1:0] SGMII Ports
+      sgmiiClkP       : in    sl;
+      sgmiiClkN       : in    sl;
+      sgmiiRxP        : in    slv(1 downto 0);
+      sgmiiRxN        : in    slv(1 downto 0);
+      sgmiiTxP        : out   slv(1 downto 0);
+      sgmiiTxN        : out   slv(1 downto 0);
       -- ATCA Backplane: FABRIC ETH[1:4]
       fabEthRefClkP   : in    sl;
       fabEthRefClkN   : in    sl;
@@ -283,17 +279,13 @@ begin
          -------------------   
          --  Top Level Ports
          -------------------      
-         -- ATCA Backplane: BASE ETH[1] and Front Panel LVDS SGMII Ports
-         ethRefClkP        => ethRefClkP,
-         ethRefClkN        => ethRefClkN,
-         ethTxP            => ethTxP,
-         ethTxN            => ethTxN,
-         ethRxP            => ethRxP,
-         ethRxN            => ethRxN,
-         ethMdio           => ethMdio,
-         ethMdc            => ethMdc,
-         ethRstL           => ethRstL,
-         ethIrqL           => ethIrqL,
+         -- Front Panel: ETH[1:0] SGMII Ports
+         sgmiiClkP         => sgmiiClkP,
+         sgmiiClkN         => sgmiiClkN,
+         sgmiiTxP          => sgmiiTxP,
+         sgmiiTxN          => sgmiiTxN,
+         sgmiiRxP          => sgmiiRxP,
+         sgmiiRxN          => sgmiiRxN,
          -- ATCA Backplane: FABRIC ETH[1:4]
          fabEthRefClk      => fabEthRefClk,
          fabEthTxP         => fabEthTxP,
