@@ -120,6 +120,8 @@ architecture mapping of AtlasAtcaLinkAggReg is
    signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C);
 
    signal axilRstL  : sl;
+   signal bootRdy   : sl;
+   signal bootArmed : sl;
    signal bootCmd   : sl;
    signal bootReq   : sl;
    signal bootstart : sl;
@@ -174,7 +176,39 @@ begin
          axiWriteMaster => axilWriteMasters(VERSION_INDEX_C),
          axiWriteSlave  => axilWriteSlaves(VERSION_INDEX_C));
 
-   bootstart <= bootCmd or bootReq;
+   U_bootRdy : entity work.PwrUpRst
+      generic map (
+         TPD_G          => TPD_G,
+         OUT_POLARITY_G => '0',
+         DURATION_G     => 937500000)  -- 6 seconds
+      port map (
+         clk    => axilClk,
+         rstOut => bootRdy);
+
+   process(axilClk)
+   begin
+      if rising_edge(axilClk) then
+         -- Check for reset
+         if axilRst = '1' then
+            bootArmed <= '0' after TPD_G;
+            bootstart <= '0' after TPD_G;
+         else
+            -- Reset the flag
+            bootstart <= '0' after TPD_G;
+            -- Check for IPMI boot request or User boot cmd
+            if (bootReq = '1') or (bootCmd = '1') then
+               bootArmed <= '1' after TPD_G;
+            end if;
+            -- Check if DDR passed and armed
+            if (bootRdy = '1') and (bootArmed = '1') then
+               -- Set the flag
+               bootstart <= '1' after TPD_G;
+               -- Reset the flag
+               bootArmed <= '0' after TPD_G;
+            end if;
+         end if;
+      end if;
+   end process;
 
    -----------------------
    -- AXI-Lite: BSI Module

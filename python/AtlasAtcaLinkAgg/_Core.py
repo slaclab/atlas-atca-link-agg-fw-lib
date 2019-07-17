@@ -47,9 +47,10 @@ class Core(pr.Device):
         ))
         
         self.add(prom.AxiMicronN25Q(
-            name    = 'AxiMicronN25Q', 
-            offset  = 0x00002000, 
-            hidden  = True, # Hidden in GUI because indented for scripting
+            name     = 'AxiMicronN25Q', 
+            offset   = 0x00002000, 
+            addrMode = True, # True = 32-bit Address Mode
+            hidden   = True, # Hidden in GUI because indented for scripting
         ))        
         
         self.add(AtlasAtcaLinkAgg.Bsi(
@@ -57,26 +58,47 @@ class Core(pr.Device):
             offset  = 0x00003000, 
             expand  = False,
         ))        
+            
+        self.add(nxp.Pca9506(      
+            name         = 'Pca9506', 
+            offset       = 0x0000A000,
+            expand       = False,
+            pollInterval = 5,
+        ))                
         
         for i in range(4):
+        
+            self.add(pr.LinkVariable(
+                name         = f'SfpPresent[{i}]', 
+                mode         = 'RO', 
+                linkedGet    =  lambda i=i: (~int(self.Pca9506.IP[1].value()) >> (i+0)) & 0x1,
+                dependencies = [self.Pca9506.IP[1]],
+                hidden       = True,
+            ))         
+        
             self.add(xceiver.Sff8472(
-                name    = f'Sfp[{i}]', 
-                offset  = 0x00004000+i*0x00001000, 
-                expand  = False,
+                name       = f'Sfp[{i}]', 
+                offset     = 0x00004000+i*0x00001000, 
+                expand     = False,
+                enableDeps = [self.SfpPresent[i]],
             ))
             
         for i in range(2):
-            self.add(xceiver.Sff8472(
-                name    = f'Qsfp[{i}]', 
-                offset  = 0x00008000+i*0x00001000, 
-                expand  = False,
-            ))     
+        
+            self.add(pr.LinkVariable(
+                name         = f'QsfpPresent[{i}]', 
+                mode         = 'RO', 
+                linkedGet    =  lambda i=i: (~int(self.Pca9506.IP[1].value()) >> (i+4)) & 0x1,
+                dependencies = [self.Pca9506.IP[1]],
+                hidden       = True,
+            ))  
             
-        self.add(nxp.Pca9506(      
-            name   = 'Pca9506', 
-            offset = 0x0000A000,
-            expand = False,
-        ))                
+            self.add(xceiver.Sff8472(
+                name       = f'Qsfp[{i}]', 
+                offset     = 0x00008000+i*0x00001000, 
+                expand     = False,
+                enableDeps = [self.QsfpPresent[i]],
+            ))     
         
         self.add(ti.Lmk61e2(      
             name   = 'Lmk', 

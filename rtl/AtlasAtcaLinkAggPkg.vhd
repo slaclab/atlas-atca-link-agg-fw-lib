@@ -24,7 +24,7 @@ package AtlasAtcaLinkAggPkg is
 
    constant XIL_DEVICE_C : string := "ULTRASCALE_PLUS";
 
-   constant NUM_ETH_C         : positive := 6;  -- FAB_ETH[4:1], BASE_ETH[1], FP_ETH
+   constant NUM_ETH_C         : positive := 6;  -- FAB_ETH[4:1], FP_SGMII[1:0]
    constant AXIL_CLK_FREQ_C   : real     := 156.25E+6;  -- In units of Hz
    constant AXIL_CLK_PERIOD_C : real     := (1.0/AXIL_CLK_FREQ_C);  -- In units of seconds      
 
@@ -46,7 +46,7 @@ package AtlasAtcaLinkAggPkg is
       enDhcp      : boolean;            -- Enable DHCP support
       enXvc       : boolean;  -- Enable the Xilinx XVC debug to be built
       enSrp       : boolean;            -- Enable SRPv3 to be built
-      fabConfig   : FabEthConfigType;  -- Sets the type of configuration for the fabric channel (ignored for BASE and FP ETH ports)
+      fabConfig   : FabEthConfigType;  -- Sets the type of configuration for the fabric channel (ignored for FP SGMII ports)
       -- Streaming Data Server Configurations
       numSrvData  : natural range 0 to 8;  -- sets the number of server data RSSI channels
       enSrvDataTx : boolean;  -- Option to enable TX (disable saves resources)
@@ -61,9 +61,8 @@ package AtlasAtcaLinkAggPkg is
       enDhcp      => true,
       enXvc       => false,
       enSrp       => true,
-      fabConfig   => ETH_1G_1LANE,
+      fabConfig   => ETH_10G_4LANE,
       -- Streaming Data Server Configurations
-      -- numSrvData  => 1, --- debuging!!!!!!!!!!!!!!!!!!!!
       numSrvData  => 0,
       enSrvDataTx => false,
       enSrvDataRx => false,
