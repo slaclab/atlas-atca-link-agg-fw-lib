@@ -183,6 +183,7 @@ begin
          DURATION_G     => 937500000)  -- 6 seconds
       port map (
          clk    => axilClk,
+         arst   => axilRst,
          rstOut => bootRdy);
 
    process(axilClk)
