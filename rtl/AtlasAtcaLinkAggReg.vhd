@@ -261,7 +261,7 @@ begin
             TPD_G         => TPD_G,
             USE_SLOWCLK_G => true)
          port map (
-            slowClk     => slowClk,
+            slowClk     => axilClk,
             clk         => axilClk,
             rst         => axilRst,
             start       => bootstart,
