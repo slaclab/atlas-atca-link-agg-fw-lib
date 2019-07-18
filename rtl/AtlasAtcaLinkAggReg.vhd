@@ -135,6 +135,8 @@ architecture mapping of AtlasAtcaLinkAggReg is
    signal di       : slv(3 downto 0);
    signal do       : slv(3 downto 0);
 
+   signal userValues : Slv32Array(0 to 63) := (others => x"00000000");
+
 begin
 
    U_XBAR : entity work.AxiLiteCrossbar
@@ -164,23 +166,27 @@ begin
          BUILD_INFO_G    => BUILD_INFO_G,
          CLK_PERIOD_G    => AXIL_CLK_PERIOD_C,
          XIL_DEVICE_G    => XIL_DEVICE_C,
+         USE_SLOWCLK_G   => true,
          EN_DEVICE_DNA_G => true)
       port map (
          -- AXI-Lite Interface
          axiClk         => axilClk,
          axiRst         => axilRst,
-         upTimeCnt      => upTimeCnt,
-         fpgaReload     => bootCmd,
          axiReadMaster  => axilReadMasters(VERSION_INDEX_C),
          axiReadSlave   => axilReadSlaves(VERSION_INDEX_C),
          axiWriteMaster => axilWriteMasters(VERSION_INDEX_C),
-         axiWriteSlave  => axilWriteSlaves(VERSION_INDEX_C));
+         axiWriteSlave  => axilWriteSlaves(VERSION_INDEX_C),
+         -- Optional: FPGA Reloading Interface
+         fpgaReload     => bootCmd,
+         -- Optional: user values
+         upTimeCnt      => upTimeCnt,
+         userValues     => userValues);
 
    U_bootRdy : entity work.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '0',
-         DURATION_G     => 937500000)  -- 6 seconds
+         DURATION_G     => 937500000)   -- 6 seconds
       port map (
          clk    => axilClk,
          arst   => axilRst,
@@ -210,6 +216,13 @@ begin
          end if;
       end if;
    end process;
+
+   userValues(0)    <= bootAddr;
+   userValues(1)(0) <= bootstart;
+   userValues(1)(1) <= bootArmed;
+   userValues(1)(2) <= bootReq;
+   userValues(1)(3) <= bootCmd;
+   userValues(1)(4) <= bootRdy;
 
    -----------------------
    -- AXI-Lite: BSI Module
@@ -243,11 +256,12 @@ begin
 
    NOT_SIM : if (SIMULATION_G = false) generate
 
-      U_Iprog : entity work.Iprog
+      U_Iprog : entity work.IprogUltraScale
          generic map (
-            TPD_G        => TPD_G,
-            XIL_DEVICE_G => XIL_DEVICE_C)
+            TPD_G         => TPD_G,
+            USE_SLOWCLK_G => true)
          port map (
+            slowClk     => slowClk,
             clk         => axilClk,
             rst         => axilRst,
             start       => bootstart,

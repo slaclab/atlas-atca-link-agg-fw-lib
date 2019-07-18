@@ -22,6 +22,66 @@ import surf.devices.transceivers as xceiver
 
 import AtlasAtcaLinkAgg
 
+class MyAxiVersion(axi.AxiVersion):
+    def __init__(self,
+            name             = 'MyAxiVersion',
+            description      = 'AXI-Lite Version Module',
+            numUserConstants = 0,
+            **kwargs):
+            
+        super().__init__(
+            name        = name, 
+            description = description, 
+            **kwargs
+        )
+        
+        self.add(pr.RemoteVariable(   
+            name         = "BootAddr",
+            offset       = 0x400,
+            bitSize      = 32,
+            mode         = "RO",
+        ))
+        
+        self.add(pr.RemoteVariable(   
+            name         = "Bootstart",
+            offset       = 0x404,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = "RO",
+        )) 
+
+        self.add(pr.RemoteVariable(   
+            name         = "BootArmed",
+            offset       = 0x404,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = "RO",
+        ))
+
+        self.add(pr.RemoteVariable(   
+            name         = "BootReq",
+            offset       = 0x404,
+            bitSize      = 1,
+            bitOffset    = 2,
+            mode         = "RO",
+        )) 
+
+        self.add(pr.RemoteVariable(   
+            name         = "BootCmd",
+            offset       = 0x404,
+            bitSize      = 1,
+            bitOffset    = 3,
+            mode         = "RO",
+        ))  
+
+        self.add(pr.RemoteVariable(   
+            name         = "BootRdy",
+            offset       = 0x404,
+            bitSize      = 1,
+            bitOffset    = 4,
+            mode         = "RO",
+        ))          
+
 class Core(pr.Device):
     def __init__(   
         self,       
@@ -34,6 +94,7 @@ class Core(pr.Device):
             description = description,
             **kwargs)
 
+        # self.add(MyAxiVersion( 
         self.add(axi.AxiVersion( 
             name    = 'AxiVersion', 
             offset  = 0x00000000, 
