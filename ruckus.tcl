@@ -11,3 +11,6 @@ loadConstraints -path "$::DIR_PATH/xdc/AtlasAtcaLinkAggTiming.xdc"
 
 loadIpCore -path "$::DIR_PATH/ip/SysMonCore.xci"
 loadIpCore -path "$::DIR_PATH/ip/LvdsSgmiiEthPhy.xci"
+
+# Adding the common Si5345 configuration
+add_files -norecurse "$::DIR_PATH/pll-config/AtlasAtcaLinkAggDefaultPllConfig.mem"

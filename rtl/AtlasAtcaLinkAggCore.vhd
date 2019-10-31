@@ -28,10 +28,11 @@ use unisim.vcomponents.all;
 
 entity AtlasAtcaLinkAggCore is
    generic (
-      TPD_G        : time           := 1 ns;
-      SIMULATION_G : boolean        := false;
-      BUILD_INFO_G : BuildInfoType;
-      ETH_CONFIG_G : EthConfigArray := (others => ETH_CONFIG_INIT_C));  -- ETH_CONFIG_G[3:0] = FAB_ETH[4:1], ETH_CONFIG_G[4] = BASE_ETH, ETH_CONFIG_G[5] = FP_ETH
+      TPD_G              : time           := 1 ns;
+      SIMULATION_G       : boolean        := false;
+      BUILD_INFO_G       : BuildInfoType;
+      MEMORY_INIT_FILE_G : string         := "AtlasAtcaLinkAggDefaultPllConfig.mem";
+      ETH_CONFIG_G       : EthConfigArray := (others => ETH_CONFIG_INIT_C));  -- ETH_CONFIG_G[3:0] = FAB_ETH[4:1], ETH_CONFIG_G[4] = BASE_ETH, ETH_CONFIG_G[5] = FP_ETH
    port (
       -----------------------------
       --  Interfaces to Application
@@ -361,9 +362,10 @@ begin
    NOT_SIM : if (SIMULATION_G = false) generate
       U_PLL_SPI : entity work.Si5345
          generic map (
-            TPD_G             => TPD_G,
-            CLK_PERIOD_G      => AXIL_CLK_PERIOD_C,
-            SPI_SCLK_PERIOD_G => (1/10.0E+6))  -- 1/(10 MHz SCLK)
+            TPD_G              => TPD_G,
+            MEMORY_INIT_FILE_G => MEMORY_INIT_FILE_G,
+            CLK_PERIOD_G       => AXIL_CLK_PERIOD_C,
+            SPI_SCLK_PERIOD_G  => (1/10.0E+6))  -- 1/(10 MHz SCLK)
          port map (
             -- AXI-Lite Register Interface
             axiClk         => axilClock,

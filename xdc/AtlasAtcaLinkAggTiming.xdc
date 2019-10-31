@@ -16,9 +16,11 @@ create_clock -name fabEthRefClkP  -period 6.400 [get_ports { fabEthRefClkP }]
 
 create_clock -name qsfpEthRefClkP -period 6.400 [get_ports { qsfpEthRefClkP }]
 create_clock -name qsfpRef160ClkP -period 6.237 [get_ports { qsfpRef160ClkP }]
+create_clock -name qsfpPllClkP    -period 3.118 [get_ports { qsfpPllClkP }]
 
 create_clock -name sfpEthRefClkP  -period 6.400 [get_ports { sfpEthRefClkP }]
 create_clock -name sfpRef160ClkP  -period 6.237 [get_ports { sfpRef160ClkP }]
+create_clock -name sfpPllClkP     -period 3.118 [get_ports { sfpPllClkP }]
 
 set_clock_groups -asynchronous \
    -group [get_clocks -include_generated_clocks {sgmiiClkP}] \
