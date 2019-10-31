@@ -108,7 +108,7 @@ architecture mapping of AtlasAtcaLinkAggRudp is
 
    constant TIMEOUT_C          : real     := 1.0E-3;  -- In units of seconds   
    constant WINDOW_ADDR_SIZE_C : positive := 6;
-   constant MAX_SEG_SIZE_C     : positive := 1024;    -- Jumbo frame chucking
+   constant MAX_SEG_SIZE_C     : positive := 1024;
    constant SYNTH_MODE_C       : string := "xpm";
    constant MEMORY_TYPE_C      : string := "ultra";
 
