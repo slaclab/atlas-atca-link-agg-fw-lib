@@ -18,10 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.AtlasAtcaLinkAggPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+
+library atlas_atca_link_agg_fw_lib;
+use atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -172,7 +175,7 @@ architecture mapping of AtlasAtcaLinkAggCore is
 begin
 
    axilClk <= axilClock;
-   U_axilRst : entity work.RstPipeline
+   U_axilRst : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -181,7 +184,7 @@ begin
          rstOut => axilRst);
 
    ref156Clk <= ref156Clock;
-   U_ref156Rst : entity work.RstPipeline
+   U_ref156Rst : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -190,7 +193,7 @@ begin
          rstOut => ref156Rst);
 
    pllSpiOeL <= '0';
-   U_pllSpiRstL : entity work.PwrUpRst
+   U_pllSpiRstL : entity surf.PwrUpRst
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -217,7 +220,7 @@ begin
    --------------------------------
    -- Common Clock and Reset Module
    -------------------------------- 
-   U_ClkRst : entity work.AtlasAtcaLinkAggClk
+   U_ClkRst : entity atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggClk
       generic map(
          TPD_G        => TPD_G,
          SIMULATION_G => SIMULATION_G)
@@ -237,7 +240,7 @@ begin
    ------------------
    -- Ethernet Module
    ------------------
-   U_Eth : entity work.AtlasAtcaLinkAggEth
+   U_Eth : entity atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggEth
       generic map (
          TPD_G            => TPD_G,
          SIMULATION_G     => SIMULATION_G,
@@ -297,7 +300,7 @@ begin
    --------------------------
    -- AXI-Lite: Crossbar Core
    --------------------------  
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => NUM_ETH_C,
@@ -318,7 +321,7 @@ begin
    -------------------
    -- System Registers
    -------------------    
-   U_SysReg : entity work.AtlasAtcaLinkAggReg
+   U_SysReg : entity atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggReg
       generic map (
          TPD_G            => TPD_G,
          SIMULATION_G     => SIMULATION_G,
@@ -360,7 +363,7 @@ begin
          vNIn            => vNIn);
 
    NOT_SIM : if (SIMULATION_G = false) generate
-      U_PLL_SPI : entity work.Si5345
+      U_PLL_SPI : entity surf.Si5345
          generic map (
             TPD_G              => TPD_G,
             MEMORY_INIT_FILE_G => MEMORY_INIT_FILE_G,

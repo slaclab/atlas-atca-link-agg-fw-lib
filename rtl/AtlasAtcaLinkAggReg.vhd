@@ -18,11 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.I2cPkg.all;
-use work.AtlasAtcaLinkAggPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.I2cPkg.all;
+
+library atlas_atca_link_agg_fw_lib;
+use atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -139,7 +142,7 @@ architecture mapping of AtlasAtcaLinkAggReg is
 
 begin
 
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -160,7 +163,7 @@ begin
    --------------------------
    -- AXI-Lite Version Module
    --------------------------
-   U_Version : entity work.AxiVersion
+   U_Version : entity surf.AxiVersion
       generic map (
          TPD_G           => TPD_G,
          BUILD_INFO_G    => BUILD_INFO_G,
@@ -182,7 +185,7 @@ begin
          upTimeCnt      => upTimeCnt,
          userValues     => userValues);
 
-   U_bootRdy : entity work.PwrUpRst
+   U_bootRdy : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '0',
@@ -227,7 +230,7 @@ begin
    -----------------------
    -- AXI-Lite: BSI Module
    -----------------------
-   U_Bsi : entity work.AtlasAtcaLinkAggBsi
+   U_Bsi : entity atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggBsi
       generic map (
          TPD_G        => TPD_G,
          BUILD_INFO_G => BUILD_INFO_G)
@@ -256,7 +259,7 @@ begin
 
    NOT_SIM : if (SIMULATION_G = false) generate
 
-      U_Iprog : entity work.IprogUltraScale
+      U_Iprog : entity surf.IprogUltraScale
          generic map (
             TPD_G         => TPD_G,
             USE_SLOWCLK_G => true)
@@ -267,7 +270,7 @@ begin
             start       => bootstart,
             bootAddress => bootAddr);
 
-      U_SysMon : entity work.AtlasAtcaLinkAggSysMon
+      U_SysMon : entity atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggSysMon
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -283,7 +286,7 @@ begin
             axilClk         => axilClk,
             axilRst         => axilRst);
 
-      U_BootProm : entity work.AxiMicronN25QCore
+      U_BootProm : entity surf.AxiMicronN25QCore
          generic map (
             TPD_G          => TPD_G,
             AXI_CLK_FREQ_G => AXIL_CLK_FREQ_C,        -- units of Hz
@@ -332,7 +335,7 @@ begin
 
       GEN_SFP :
       for i in 3 downto 0 generate
-         U_I2C : entity work.AxiI2cRegMaster
+         U_I2C : entity surf.AxiI2cRegMaster
             generic map (
                TPD_G          => TPD_G,
                I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz
@@ -354,7 +357,7 @@ begin
 
       GEN_QSFP :
       for i in 1 downto 0 generate
-         U_I2C : entity work.AxiI2cRegMaster
+         U_I2C : entity surf.AxiI2cRegMaster
             generic map (
                TPD_G          => TPD_G,
                I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz
@@ -374,7 +377,7 @@ begin
                axiRst         => axilRst);
       end generate GEN_QSFP;
 
-      U_FP_I2C : entity work.AxiI2cRegMaster
+      U_FP_I2C : entity surf.AxiI2cRegMaster
          generic map (
             TPD_G          => TPD_G,
             I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz
@@ -393,7 +396,7 @@ begin
             axiClk         => axilClk,
             axiRst         => axilRst);
 
-      U_PLL_I2C : entity work.AxiI2cRegMaster
+      U_PLL_I2C : entity surf.AxiI2cRegMaster
          generic map (
             TPD_G          => TPD_G,
             I2C_SCL_FREQ_G => 400.0E+3,  -- units of Hz

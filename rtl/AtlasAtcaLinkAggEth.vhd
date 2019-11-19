@@ -18,11 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
-use work.AtlasAtcaLinkAggPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
+
+library atlas_atca_link_agg_fw_lib;
+use atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -104,7 +107,7 @@ architecture mapping of AtlasAtcaLinkAggEth is
 
 begin
 
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -126,7 +129,7 @@ begin
    for i in 3 downto 0 generate
 
       EN_ETH : if ETH_CONFIG_G(i).enable generate
-         U_Fab : entity work.AtlasAtcaLinkAggEthFab
+         U_Fab : entity atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggEthFab
             generic map (
                TPD_G            => TPD_G,
                SIMULATION_G     => SIMULATION_G,
@@ -156,7 +159,7 @@ begin
       end generate;
 
       DIS_ETH : if not(ETH_CONFIG_G(i).enable) generate
-         U_TERM_GTs : entity work.Gthe4ChannelDummy
+         U_TERM_GTs : entity surf.Gthe4ChannelDummy
             generic map (
                TPD_G   => TPD_G,
                WIDTH_G => 4)
@@ -170,7 +173,7 @@ begin
 
    end generate GEN_FAB;
 
-   U_FrontPanelEth : entity work.AtlasAtcaLinkAggEthLvds
+   U_FrontPanelEth : entity atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggEthLvds
       generic map (
          TPD_G         => TPD_G,
          SGMII_EN_G(0) => ETH_CONFIG_G(4).enable,
@@ -200,7 +203,7 @@ begin
    GEN_VEC :
    for i in 5 downto 0 generate
       GEN_RUDP : if ETH_CONFIG_G(i).enable generate
-         U_Rudp : entity work.AtlasAtcaLinkAggRudp
+         U_Rudp : entity atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggRudp
             generic map (
                TPD_G            => TPD_G,
                SIMULATION_G     => SIMULATION_G,

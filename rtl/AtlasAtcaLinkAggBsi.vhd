@@ -1,8 +1,6 @@
 -------------------------------------------------------------------------------
 -- File       : AtlasAtcaLinkAggBsi.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-03
--- Last update: 2019-07-10
 -------------------------------------------------------------------------------
 -- Description: BootStrap Interface (BSI) to the IPMI's controller (IPMC) 
 -------------------------------------------------------------------------------
@@ -20,10 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.i2cPkg.all;
-use work.AtlasAtcaLinkAggPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.i2cPkg.all;
+
+library atlas_atca_link_agg_fw_lib;
+use atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -166,7 +167,7 @@ begin
    -------------------
    -- I2c Slave @ 0x49
    -------------------
-   U_I2C_SLAVE_0x49 : entity work.i2cRegSlave
+   U_I2C_SLAVE_0x49 : entity surf.i2cRegSlave
       generic map (
          TPD_G                => TPD_G,
          TENBIT_G             => 0,
@@ -191,7 +192,7 @@ begin
    -------------------
    -- I2c Slave @ 0x51
    -------------------
-   U_I2C_SLAVE_0x51 : entity work.i2cRegSlave
+   U_I2C_SLAVE_0x51 : entity surf.i2cRegSlave
       generic map (
          TPD_G                => TPD_G,
          TENBIT_G             => 0,
@@ -216,7 +217,7 @@ begin
    ----------------
    -- Dual port RAM
    ----------------   
-   U_RAM : entity work.TrueDualPortRam
+   U_RAM : entity surf.TrueDualPortRam
       generic map (
          TPD_G        => TPD_G,
          MODE_G       => "read-first",

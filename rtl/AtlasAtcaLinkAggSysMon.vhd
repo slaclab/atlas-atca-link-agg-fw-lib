@@ -16,8 +16,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library atlas_atca_link_agg_fw_lib;
 
 entity AtlasAtcaLinkAggSysMon is
    generic (

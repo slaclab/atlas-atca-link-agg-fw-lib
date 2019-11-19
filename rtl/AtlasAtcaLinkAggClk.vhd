@@ -18,7 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+
+library atlas_atca_link_agg_fw_lib;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -101,7 +104,7 @@ begin
          DIV     => "000",              -- Divide by 1
          O       => fabClock);
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map(
          TPD_G         => TPD_G,
          SIM_SPEEDUP_G => SIMULATION_G)
@@ -134,7 +137,7 @@ begin
 
    GEN_SIM : if (SIMULATION_G = true) generate
 
-      U_Clk156 : entity work.ClkRst
+      U_Clk156 : entity surf.ClkRst
          generic map (
             CLK_PERIOD_G      => 6.4 ns,
             RST_START_DELAY_G => 0 ns,
@@ -143,7 +146,7 @@ begin
             clkP => CLKOUT0,
             rstL => locked);
 
-      U_Clk125 : entity work.ClkRst
+      U_Clk125 : entity surf.ClkRst
          generic map (
             CLK_PERIOD_G      => 8.0 ns,
             RST_START_DELAY_G => 0 ns,
@@ -161,7 +164,7 @@ begin
          I => CLKOUT0,
          O => axilClock);
 
-   U_axilRst : entity work.RstSync
+   U_axilRst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          IN_POLARITY_G => '0')
@@ -178,7 +181,7 @@ begin
          I => CLKOUT1,
          O => eth125Clock);
 
-   U_eth125Rst : entity work.RstSync
+   U_eth125Rst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          IN_POLARITY_G => '0')
@@ -199,7 +202,7 @@ begin
          CLR => eth125Reset,
          O   => eth62Clock);
 
-   U_eth62Rst : entity work.RstSync
+   U_eth62Rst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          IN_POLARITY_G => '0')

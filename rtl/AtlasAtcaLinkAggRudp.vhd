@@ -18,12 +18,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
-use work.AtlasAtcaLinkAggPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
+
+library atlas_atca_link_agg_fw_lib;
+use atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -180,7 +183,7 @@ architecture mapping of AtlasAtcaLinkAggRudp is
 
 begin
 
-   U_XBAR : entity work.AxiLiteCrossbar
+   U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -201,7 +204,7 @@ begin
    ----------------------
    -- IPv4/ARP/UDP Engine
    ----------------------
-   U_UdpEngineWrapper : entity work.UdpEngineWrapper
+   U_UdpEngineWrapper : entity surf.UdpEngineWrapper
       generic map (
          -- Simulation Generics
          TPD_G          => TPD_G,
@@ -249,7 +252,7 @@ begin
    -- Xilinx XVC
    -------------
    GEN_XVC : if (ETH_CONFIG_G.enXvc) generate
-      U_Debug : entity work.UdpDebugBridgeWrapper
+      U_Debug : entity surf.UdpDebugBridgeWrapper
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -264,7 +267,7 @@ begin
    end generate;
 
    GEN_SRP : if (ETH_CONFIG_G.enSrp) generate
-      U_RssiServer : entity work.RssiCoreWrapper
+      U_RssiServer : entity surf.RssiCoreWrapper
          generic map (
             TPD_G               => TPD_G,
             SERVER_G            => true,
@@ -313,7 +316,7 @@ begin
       ------------------
       -- AXI-Lite Master
       ------------------
-      U_SRPv3 : entity work.SrpV3AxiLite
+      U_SRPv3 : entity surf.SrpV3AxiLite
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => true,
@@ -342,7 +345,7 @@ begin
    GEN_SRV : if (ETH_CONFIG_G.numSrvData /= 0) generate
       GEN_CH :
       for i in (ETH_CONFIG_G.numSrvData-1) downto 0 generate
-         U_Rssi : entity work.RssiCoreWrapper
+         U_Rssi : entity surf.RssiCoreWrapper
             generic map (
                TPD_G               => TPD_G,
                SERVER_G            => true,
@@ -395,7 +398,7 @@ begin
    GEN_CLT : if (ETH_CONFIG_G.numCltData /= 0) generate
       GEN_CH :
       for i in (ETH_CONFIG_G.numCltData-1) downto 0 generate
-         U_Rssi : entity work.RssiCoreWrapper
+         U_Rssi : entity surf.RssiCoreWrapper
             generic map (
                TPD_G               => TPD_G,
                SERVER_G            => false,  -- false = Client mode

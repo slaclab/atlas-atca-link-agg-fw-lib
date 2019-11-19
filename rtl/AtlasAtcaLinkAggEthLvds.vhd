@@ -18,10 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
+
+library atlas_atca_link_agg_fw_lib;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -278,7 +281,7 @@ begin
             --------------------
             -- Ethernet MAC core
             --------------------
-            U_MAC : entity work.EthMacTop
+            U_MAC : entity surf.EthMacTop
                generic map (
                   TPD_G           => TPD_G,
                   PAUSE_EN_G      => PAUSE_EN_G,

@@ -18,11 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
-use work.AtlasAtcaLinkAggPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
+
+library atlas_atca_link_agg_fw_lib;
+use atlas_atca_link_agg_fw_lib.AtlasAtcaLinkAggPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -65,7 +68,7 @@ begin
    --------------
    GEN_ETH_1Gx1 : if (FAB_ETH_CONFIG_G = ETH_1G_1LANE) generate
 
-      U_Eth : entity work.GigEthGthUltraScaleWrapper
+      U_Eth : entity surf.GigEthGthUltraScaleWrapper
          generic map (
             TPD_G         => TPD_G,
             EXT_PLL_G     => true,
@@ -97,7 +100,7 @@ begin
             gtRxP(0)        => fabEthRxP(0),
             gtRxN(0)        => fabEthRxN(0));
 
-      U_TERM_GTs : entity work.Gthe4ChannelDummy
+      U_TERM_GTs : entity surf.Gthe4ChannelDummy
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 3)
@@ -114,7 +117,7 @@ begin
    -- 10GBASE-KX4 (A.K.A. "XAUI")
    ------------------------------
    GEN_ETH_10Gx4 : if (FAB_ETH_CONFIG_G = ETH_10G_4LANE) generate
-      U_Eth : entity work.XauiGthUltraScaleWrapper
+      U_Eth : entity surf.XauiGthUltraScaleWrapper
          generic map (
             TPD_G         => TPD_G,
             EN_WDT_G      => true,
@@ -148,7 +151,7 @@ begin
    -------------
    GEN_ETH_10Gx1 : if (FAB_ETH_CONFIG_G = ETH_10G_1LANE) generate
 
-      U_Eth : entity work.TenGigEthGthUltraScaleWrapper
+      U_Eth : entity surf.TenGigEthGthUltraScaleWrapper
          generic map (
             TPD_G             => TPD_G,
             EXT_REF_G         => true,
@@ -178,7 +181,7 @@ begin
             gtRxP(0)        => fabEthRxP(0),
             gtRxN(0)        => fabEthRxN(0));
 
-      U_TERM_GTs : entity work.Gthe4ChannelDummy
+      U_TERM_GTs : entity surf.Gthe4ChannelDummy
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 3)
