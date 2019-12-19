@@ -171,6 +171,7 @@ architecture mapping of AtlasAtcaLinkAggCore is
    signal eth62Clk     : sl;
    signal eth62Rst     : sl;
    signal fabEthRefClk : sl;
+   signal pllSpiRst    : sl;
 
 begin
 
@@ -192,17 +193,8 @@ begin
          rstIn  => ref156Reset,
          rstOut => ref156Rst);
 
-   pllSpiOeL <= '0';
-   U_pllSpiRstL : entity surf.PwrUpRst
-      generic map(
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '0',
-         SIM_SPEEDUP_G  => SIMULATION_G)
-      port map (
-         clk    => axilClock,
-         arst   => axilReset,
-         rstOut => pllSpiRstL);
+   pllSpiOeL  <= '0';
+   pllSpiRstL <= '1';
 
    process(bsiBus)
       variable tmp : BsiBusType;
