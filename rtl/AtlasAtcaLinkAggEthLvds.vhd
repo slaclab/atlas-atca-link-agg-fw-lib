@@ -31,11 +31,9 @@ use unisim.vcomponents.all;
 
 entity AtlasAtcaLinkAggEthLvds is
    generic (
-      TPD_G           : time                     := 1 ns;
-      SGMII_EN_G      : BooleanArray(1 downto 0) := (others => true);
-      PAUSE_EN_G      : boolean                  := false;
-      PAUSE_512BITS_G : positive                 := 8;
-      AXIS_CONFIG_G   : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);
+      TPD_G         : time                     := 1 ns;
+      SGMII_EN_G    : BooleanArray(1 downto 0) := (others => true);
+      AXIS_CONFIG_G : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations/status
       localMac     : in  Slv48Array(1 downto 0);  --  big-Endian configuration   
@@ -283,11 +281,14 @@ begin
             --------------------
             U_MAC : entity surf.EthMacTop
                generic map (
-                  TPD_G           => TPD_G,
-                  PAUSE_EN_G      => PAUSE_EN_G,
-                  PAUSE_512BITS_G => PAUSE_512BITS_G,
-                  PHY_TYPE_G      => "GMII",
-                  PRIM_CONFIG_G   => AXIS_CONFIG_G)
+                  TPD_G             => TPD_G,
+                  PAUSE_EN_G        => true,
+                  PAUSE_512BITS_G   => PAUSE_512BITS_C,
+                  FIFO_ADDR_WIDTH_G => 12,  -- single 4K UltraRAM
+                  SYNTH_MODE_G      => "xpm",
+                  MEMORY_TYPE_G     => "ultra",
+                  PHY_TYPE_G        => "GMII",
+                  PRIM_CONFIG_G     => AXIS_CONFIG_G)
                port map (
                   -- Primary Interface
                   primClk         => macClk,
