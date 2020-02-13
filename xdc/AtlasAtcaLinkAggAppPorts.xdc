@@ -13,6 +13,9 @@
 set_property -dict { PACKAGE_PIN AD16 IOSTANDARD LVDS } [get_ports { fpgaToPllClkP }]
 set_property -dict { PACKAGE_PIN AD15 IOSTANDARD LVDS } [get_ports { fpgaToPllClkN }]
 
+set_property -dict { PACKAGE_PIN AH16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { pllToFpgaClkP }]
+set_property -dict { PACKAGE_PIN AJ16 IOSTANDARD LVDS DIFF_TERM_ADV TERM_100 } [get_ports { pllToFpgaClkN }]
+
 # Front Panel Clock/LED/TTL Ports
 
 set_property -dict { PACKAGE_PIN AD6 } [get_ports { smaClkP }]
