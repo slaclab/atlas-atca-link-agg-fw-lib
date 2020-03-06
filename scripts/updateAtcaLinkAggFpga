@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+#-----------------------------------------------------------------------------
+# Title      : BPI/SPIx4/SPIx8 Prom Update
+#-----------------------------------------------------------------------------
+# This file is part of the 'axi-pcie-core'. It is subject to 
+# the license terms in the LICENSE.txt file found in the top-level directory 
+# of this distribution and at: 
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
+# No part of the 'axi-pcie-core', including this file, may be 
+# copied, modified, propagated, or distributed except according to the terms 
+# contained in the LICENSE.txt file.
+#-----------------------------------------------------------------------------
+
+import pyrogue as pr
+import os
+import importlib
+
+baseDir = os.path.dirname(os.path.realpath(__file__))
+
+print(f"Basedir = {baseDir}")
+
+# First see if surf and AtlasAtcaLinkAgg are already in the python path
+try:
+    import surf
+    import AtlasAtcaLinkAgg
+
+# Otherwise assume it is relative in a standard development directory structure
+except:
+    pr.addLibraryPath(baseDir + '/../python')
+    pr.addLibraryPath(baseDir + '/../../surf/python')
+
+import sys
+import glob
+import argparse
+import rogue
+import pyrogue.protocols
+import AtlasAtcaLinkAgg as linkAgg
+
+if __name__ == "__main__": 
+
+    # Set the argument parser
+    parser = argparse.ArgumentParser()
+
+    # Add arguments
+    parser.add_argument(
+        "--ip", 
+        type     = str,
+        required = True,
+        help     = "ATCA Link Agg IP address",
+    ) 
+
+    parser.add_argument(
+        "--mcs", 
+        type     = str,
+        required = True,
+        help     = "path to .MCS file",
+    )  
+    
+    parser.add_argument(
+        "--package", 
+        type     = str,
+        default  = None,
+        required = False,
+        help     = "path to images",
+    )  
+
+    # Get the arguments
+    args = parser.parse_args()
+
+    if args.package is not None:
+        BasePackage = importlib.import_module(args.package)
+        args.path = BasePackage.ImageDir
+
+    # Set base
+    base = pr.Root(name='FpgaTop',description='',pollEn=False)
+
+    # Create the stream interface
+    rudp = pr.protocols.UdpRssiPack(
+        host    = args.ip,
+        port    = 8193,
+        packVer = 2,
+    )
+    srp = rogue.protocols.srp.SrpV3()
+    rudp.application(0) == srp
+
+    # Add Base Device
+    base.add(linkAgg.Core(memBase = srp))
+
+    # Start the system
+    base.start()
+
+    # Read all the variables
+    base.ReadAll()
+
+    # Create useful pointers
+    AxiVersion = base.Core.AxiVersion
+    PROM       = base.Core.AxiMicronN25Q
+
+    # Print current firmware status
+    print ( '###################################################')
+    print ( '#                 Old Firmware                    #')
+    print ( '###################################################')    
+    AxiVersion.printStatus()
+    
+    # Program the FPGA's PROM
+    PROM.LoadMcsFile(args.mcs)
+
+    if(PROM._progDone):
+        print('\nReloading FPGA firmware from PROM ....')
+        AxiVersion.FpgaReload()
+        time.sleep(15)
+        print('\nReloading FPGA done')
+
+        print ( '###################################################')
+        print ( '#                 New Firmware                    #')
+        print ( '###################################################')
+        AxiVersion.printStatus()
+    else:
+        print('Failed to program FPGA')
+
+    base.stop()
+    exit()
