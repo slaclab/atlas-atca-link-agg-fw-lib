@@ -134,6 +134,7 @@ architecture rtl of AtlasAtcaLinkAggBsi is
    signal slaveOut    : i2c_out_array(1 downto 0);
    signal i2cIn       : i2c_in_type;
    signal i2cOut      : i2c_out_type;
+   signal macRdy      : sl;
 
 begin
 
@@ -250,8 +251,8 @@ begin
    --------------------- 
    -- AXI Lite Interface
    --------------------- 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, ethLinkUp, r,
-                   ramData, upTimeCnt) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, ethLinkUp, macRdy,
+                   r, ramData, upTimeCnt) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
       variable i      : natural;
@@ -482,7 +483,11 @@ begin
       bsiBus.crateId    <= r.crateId;
       localIp           <= r.localIp;
       for i in NUM_ETH_C-1 downto 0 loop
-         bsiBus.macAddress(i) <= endianSwap(r.macAddress(i));
+         if (macRdy = '1') then
+            bsiBus.macAddress(i) <= endianSwap(r.macAddress(i));
+         else
+            bsiBus.macAddress(i) <= (others => '0');
+         end if;
       end loop;
       ledRedL   <= not(r.ledRed);
       ledBlueL  <= not(r.ledBlue);
@@ -496,5 +501,15 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_macRdy : entity surf.PwrUpRst
+      generic map(
+         TPD_G          => TPD_G,
+         OUT_POLARITY_G => '0',
+         DURATION_G     => (5*156250000))  -- 5 seconds
+      port map(
+         arst   => axilRst,
+         clk    => axilClk,
+         rstOut => macRdy);
 
 end rtl;
