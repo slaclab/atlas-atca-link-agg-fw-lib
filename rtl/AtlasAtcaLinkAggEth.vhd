@@ -35,7 +35,7 @@ entity AtlasAtcaLinkAggEth is
       TPD_G            : time             := 1 ns;
       SIMULATION_G     : boolean          := false;
       AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0');
-      ETH_CONFIG_G     : EthConfigArray   := (others => ETH_CONFIG_INIT_C));  -- ETH_CONFIG_G[3:0] = FAB_ETH[4:1], ETH_CONFIG_G[4] = BASE_ETH, ETH_CONFIG_G[5] = FP_ETH
+      ETH_CONFIG_G     : EthConfigArray   := (others => ETH_CONFIG_INIT_C));  -- ETH_CONFIG_G[3:0] = FAB_ETH[4:1], ETH_CONFIG_G[5:4] = FP_ETH[1:0]
    port (
       ----------------------------------------------
       --  Interfaces to Application (axilClk domain)

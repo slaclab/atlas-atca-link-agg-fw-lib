@@ -1,4 +1,4 @@
-package: 
+package:
   name: atlas_atca_link_agg_fw_lib
   version: {{ GIT_DESCRIBE_TAG }}
 
@@ -10,7 +10,7 @@ build:
 
 requirements:
    build:
-     - python
+     - python<3.8
      - rogue
      - git
      - gitpython
