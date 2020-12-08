@@ -8,7 +8,7 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-
+# To do: AtlasAtcaLinkAggRudp.vhd modules at base address 0x01000000
 import pyrogue as pr
 
 import surf.axi                  as axi
@@ -174,5 +174,3 @@ class Core(pr.Device):
             offset      = 0x00010000,
             expand      = False,
         ))
-
-        # To do: AtlasAtcaLinkAggRudp.vhd modules at base address 0x01000000
