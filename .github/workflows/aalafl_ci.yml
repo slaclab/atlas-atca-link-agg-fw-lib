@@ -19,7 +19,7 @@ on: [push]
 
 jobs:
 
-  testt:
+  test:
     name: Test
     runs-on: ubuntu-20.04
     steps:
