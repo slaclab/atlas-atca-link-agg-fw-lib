@@ -22,7 +22,7 @@ import pyrogue as pr
 import surf.ethernet.udp    as udp
 
 class Bsi(pr.Device):
-    def __init__(   self,       
+    def __init__(   self,
             name        = 'Bsi',
             description = 'Container for BSI Module',
             **kwargs):
@@ -34,7 +34,7 @@ class Bsi(pr.Device):
 
         for i in range(6):
 
-            self.add(pr.RemoteVariable(   
+            self.add(pr.RemoteVariable(
                 name         = f'MacAddress[{i}]',
                 description  = 'MacAddress (big-Endian configuration)',
                 offset       = 8*i,
@@ -42,29 +42,29 @@ class Bsi(pr.Device):
                 mode         = 'RO',
                 hidden       = True,
             ))
-            
+
             self.add(pr.LinkVariable(
-                name         = f'MAC[{i}]', 
+                name         = f'MAC[{i}]',
                 description  = 'MacAddress (human readable)',
-                mode         = 'RO', 
+                mode         = 'RO',
                 linkedGet    = udp.getMacValue,
                 dependencies = [self.variables[f'MacAddress[{i}]']],
-            ))  
+            ))
 
         for i in range(6):
-        
+
             self.add(pr.RemoteVariable(
                 name         = f'EthUpTime[{i}]',
                 description  = 'Number of seconds since ETH Link Up',
                 offset       = 4*i+64,
-                bitSize      = 32, 
+                bitSize      = 32,
                 mode         = 'RO',
                 disp         = '{:d}',
                 units        = 'seconds',
-                pollInterval = 1,                
+                pollInterval = 1,
             ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = 'CrateId',
             description  = 'ATCA Crate ID',
             offset       =  0x80,
@@ -72,7 +72,7 @@ class Bsi(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = 'SlotNumber',
             description  = 'ATCA Logical Slot Number',
             offset       =  0x84,
@@ -80,7 +80,7 @@ class Bsi(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = 'BootStartAddress',
             description  = 'Bootloader Start Address',
             offset       =  0x88,
@@ -88,7 +88,7 @@ class Bsi(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = 'VersionMinor',
             description  = 'BSI Minor Version Number',
             offset       =  0x8C,
@@ -97,7 +97,7 @@ class Bsi(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = 'VersionMajor',
             description  = 'BSI Major Version Number',
             offset       =  0x90,
@@ -106,7 +106,7 @@ class Bsi(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = 'EthLinkUp',
             description  = 'ETH Link Up',
             offset       =  0x90,
@@ -114,31 +114,30 @@ class Bsi(pr.Device):
             bitOffset    =  16,
             mode         = 'RO',
         ))
-        
-        self.add(pr.RemoteVariable(     
+
+        self.add(pr.RemoteVariable(
             name         = 'ForceLedRed',
             description  = 'Force Front Panel RED LED',
             offset       =  0x94,
             bitSize      =  2,
             bitOffset    =  0,
             mode         = 'RW',
-        ))    
+        ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = 'ForceLedBlue',
             description  = 'Force Front Panel BLUE LED',
             offset       =  0x94,
             bitSize      =  2,
             bitOffset    =  8,
             mode         = 'RW',
-        ))  
+        ))
 
-        self.add(pr.RemoteVariable(     
+        self.add(pr.RemoteVariable(
             name         = 'ForceLedGreen',
             description  = 'Force Front Panel GREEN LED',
             offset       =  0x94,
             bitSize      =  2,
             bitOffset    =  16,
             mode         = 'RW',
-        ))          
-        
+        ))
