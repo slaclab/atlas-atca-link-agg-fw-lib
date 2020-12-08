@@ -176,4 +176,3 @@ class Core(pr.Device):
         ))
 
         # To do: AtlasAtcaLinkAggRudp.vhd modules at base address 0x01000000
-
